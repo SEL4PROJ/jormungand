@@ -7,3 +7,5 @@ Hoare_Sep_Tactics/ contains the main relevant theory files, they are
  * Extended_Separation_Algebra, which contains theories about septraction, separating coimplication and theorems relating the two,
  * Simple_Separation_Example, which contains the examples of weakest preconditions and strongest postconditions from the paper, and
  * Unified_Correctness, which contains the Unified Correctness material.
+
+The theories compile with Isabelle2016-1.
