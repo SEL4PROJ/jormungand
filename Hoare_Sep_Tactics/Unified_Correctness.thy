@@ -17,7 +17,7 @@
 theory Unified_Correctness
 imports Extended_Separation_Algebra
         Hoare_Sep_Tactics
-        "~~/src/HOL/Library/Monad_Syntax"
+        Det_Monad
 begin
 
 type_synonym heap = "nat \<Rightarrow> nat option"
@@ -134,175 +134,6 @@ lemma sep_con_collapse:"sep_con (p \<mapsto>u v) (R and nf) s \<Longrightarrow> 
      apply (clarsimp simp: sep_con_def)
      apply (clarsimp simp: sep_conj_def maps_to_def pred_conj_def)
  by (metis sep_add_commute)
-   
-
-no_notation NonDetMonad.bind (infixl ">>=" 60)
-hide_const NonDetMonad.bind return get put modify gets fail assert state_assert
-
-translations
-  "CONST bind_do" == "CONST bind"
-
-no_notation valid ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>")
-no_notation validNF ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>!")
-hide_const valid validNF
-
-type_synonym ('s,'a) det_monad = "'s \<Rightarrow> 'a \<times> 's \<times> bool"
-
-definition
-  bind :: "('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> ('s,'b) det_monad) \<Rightarrow> ('s,'b) det_monad"
-where
-  "bind f g \<equiv> \<lambda>s. let (r', s', f') = f s; 
-                       (r'', s'', f'') = g r' s'
-                   in (r'', s'', f' \<or> f'')"
-
-(* use do syntax for this state monad *)
-adhoc_overloading
-  Monad_Syntax.bind bind 
-
-definition
-  "return x \<equiv> \<lambda>s. (x, s, False)"
-
-definition
-  "get \<equiv> \<lambda>s. (s, s, False)"
-
-definition
-  "put s \<equiv> \<lambda>s'. ((), s, False)"
-
-definition
-  "fail \<equiv> \<lambda>s. ((), s, True)"
-
-
-definition
-  "modify f \<equiv> get >>= (\<lambda>x. put (f x))"
-
-definition
-  "gets f \<equiv> get >>= (\<lambda>x. return (f x))"
-
-definition
-  "assert P \<equiv> if P then return () else fail"
-
-definition
-  "state_assert P \<equiv> do { s \<leftarrow> get; assert (P s) }"
-
-definition
-  valid :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool" 
-  ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>v")
-where
-  "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>v \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in \<not>f' \<longrightarrow> Q r' s')"
-
-definition
-  validNF :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool" 
-  ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>!")
-where
-  "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>! \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in Q r' s' \<and> \<not>f')"
-
-definition
-  validU :: "(('s \<times> bool)  \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> ('s \<times> bool) \<Rightarrow> bool) \<Rightarrow> bool" 
-  ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>u")
-where
-  "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>u \<equiv> \<forall>s f. P (s,f) \<longrightarrow> (let (r',s',f') = m s in Q r' (s',f \<and> \<not>f'))"
-
-lemma bind_wp[wp]:
-  "(\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>v) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B\<rbrace>v \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>v"
-  unfolding valid_def Let_def bind_def by (fastforce split: prod.splits)  
-
-lemma bind_wp_nf:
-  "\<lbrace>A\<rbrace> f \<lbrace>B\<rbrace>! \<Longrightarrow> (\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>!) \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>!"
-  unfolding validNF_def Let_def bind_def by fastforce
-
-lemma hoare_seq_ext:
-  "\<lbrace>A\<rbrace> f \<lbrace>B \<rbrace>u \<Longrightarrow> (\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>u)  \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>u"
-  unfolding validU_def Let_def bind_def by fastforce
-   
-lemma bind_wpU[wp]:
-  "(\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>u) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B \<rbrace>u \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>u"
-  by (rule hoare_seq_ext)
-
-lemma hoare_chain:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>v;
-    \<And>s. R s \<Longrightarrow> P s;
-    \<And>r s. Q r s \<Longrightarrow> S r s \<rbrakk> \<Longrightarrow>
-   \<lbrace>R\<rbrace> f \<lbrace>S\<rbrace>v"
-  by (fastforce simp: valid_def)
-
-lemma hoare_pre[wp_pre]:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>v;
-    \<And>s. R s \<Longrightarrow> P s \<rbrakk> \<Longrightarrow>
-   \<lbrace>R\<rbrace> f \<lbrace>Q\<rbrace>v"
-  by (rule hoare_chain) blast
-
-lemma hoare_chainU:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>u;
-    \<And>s. R s \<Longrightarrow> P s;
-    \<And>r s. Q r s \<Longrightarrow> S r s \<rbrakk> \<Longrightarrow>
-   \<lbrace>R\<rbrace> f \<lbrace>S\<rbrace>u"
-  by (fastforce simp: validU_def)
-
-lemma hoare_preU[wp_pre]:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>u;
-    \<And>s. R s \<Longrightarrow> P s \<rbrakk> \<Longrightarrow>
-   \<lbrace>R\<rbrace> f \<lbrace>Q\<rbrace>u"
-  by (fastforce simp: validU_def)
-
-lemma get_wp[wp]: "\<lbrace>\<lambda>s. P s s\<rbrace> get \<lbrace>P\<rbrace>v"
-  by (clarsimp simp: get_def valid_def)
-    
-lemma put_wp[wp]: "\<lbrace>\<lambda>s'. P () s\<rbrace> put s \<lbrace>P\<rbrace>v"
-  by (clarsimp simp: put_def valid_def)
-    
-lemma fail_wp[wp]: "\<lbrace>\<lambda>s. True\<rbrace> fail \<lbrace>P\<rbrace>v"
-  by (simp add: fail_def valid_def)
-
-lemma return_wp[wp]: "\<lbrace>P x\<rbrace> return x \<lbrace>P\<rbrace>v"
-  by (simp add: valid_def return_def)
-
-lemma if_wp[wp]:
-  "\<lbrakk> Q \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>P\<rbrace>v; \<not>Q \<Longrightarrow> \<lbrace>B\<rbrace> g \<lbrace>P\<rbrace>v\<rbrakk> \<Longrightarrow>
-  \<lbrace>\<lambda>s. (Q \<longrightarrow> A s) \<and> (\<not>Q \<longrightarrow> B s)\<rbrace> if Q then f else g \<lbrace>P\<rbrace>v"
-  by auto
-
-(* partial ignores asserts *)
-lemma assert_wp[wp]:
-  "\<lbrace>\<lambda>s. Q \<longrightarrow> P () s\<rbrace> assert Q \<lbrace>P\<rbrace>v"
-  unfolding assert_def by wp auto
-
-lemma state_assert_wp[wp]:
-  "\<lbrace>\<lambda>s. Q s \<longrightarrow> P () s\<rbrace> state_assert Q \<lbrace>P\<rbrace>v"
-  unfolding state_assert_def by wp
-
-lemma modify_wp[wp]:
-  "\<lbrace>\<lambda>s. P () (f s)\<rbrace> modify f \<lbrace>P\<rbrace>v"
-  unfolding modify_def by wpsimp
-
-
-lemma get_wpU[wp]: "\<lbrace>\<lambda>s. P (fst s) s \<rbrace> get \<lbrace> P \<rbrace>u"
-  by (clarsimp simp: get_def validU_def)
-    
-lemma put_wpU[wp]: "\<lbrace>\<lambda>s'. P () (s, snd s') \<rbrace> put s \<lbrace> P \<rbrace>u"
-  by (clarsimp simp: put_def validU_def)
-    
-lemma fail_wpU[wp]: "\<lbrace>\<lambda>s. P () (fst s, False) \<rbrace> fail \<lbrace> P \<rbrace>u"
-  by (simp add: fail_def validU_def)
-
-lemma return_wpU[wp]: "\<lbrace>P x\<rbrace> return x \<lbrace>P\<rbrace>u"
-  by (simp add: validU_def return_def)
-
-lemma if_wpU[wp]:
-  "\<lbrakk> Q \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>P\<rbrace>u; \<not>Q \<Longrightarrow> \<lbrace>B\<rbrace> g \<lbrace>P\<rbrace>u\<rbrakk> \<Longrightarrow>
-  \<lbrace>\<lambda>s. (Q \<longrightarrow> A s) \<and> (\<not>Q \<longrightarrow> B s)\<rbrace> if Q then f else g \<lbrace>P\<rbrace>u"
-  by auto
-
-lemma assert_wpU[wp]:
-  "\<lbrace>\<lambda>s. P () (fst s, Q \<and> snd s) \<rbrace> assert Q \<lbrace> P \<rbrace>u"
-  unfolding assert_def by wp auto
-
-lemma state_assert_wpU[wp]:
-  "\<lbrace>\<lambda>s.  P () (fst s, Q (fst s) \<and> snd s) \<rbrace> state_assert Q \<lbrace> P \<rbrace>u"
-  unfolding state_assert_def by wpsimp
-
-lemma modify_wpU[wp]:
-  "\<lbrace>\<lambda>s. P ()  (f (fst s), snd s)\<rbrace> modify f \<lbrace>P\<rbrace>u"
-  unfolding modify_def by wpsimp
 
 definition
   "delete_ptr p = do {
@@ -312,7 +143,7 @@ definition
 
 lemma delete_ptr_sp:"\<lbrace>R\<rbrace> delete_ptr p  \<lbrace>\<lambda>_. (sept (p \<mapsto>u -) R) \<rbrace>u"
  apply (clarsimp simp: delete_ptr_def)
- apply (rule hoare_seq_ext[rotated])
+ apply (rule hoare_seq_extU[rotated])
  apply (rule modify_wpU)
  apply (rule hoare_chainU[OF state_assert_wpU, rotated])
  apply (assumption)
@@ -357,7 +188,7 @@ lemma [simp]: "(p \<mapsto>u y) h = (h = ([p \<mapsto> y], True))"
   by (metis (mono_tags, lifting) fst_conv maps_to_def prod_eqI snd_conv)
 
 lemma get_ptr_sp: "\<lbrace>R\<rbrace> get_ptr p \<lbrace>\<lambda>rv. (p \<mapsto>u rv \<and>& (p \<mapsto>u rv -& R))\<rbrace>u"
-  apply (clarsimp simp: get_ptr_def, (rule hoare_seq_ext[rotated])+)
+  apply (clarsimp simp: get_ptr_def, (rule hoare_seq_extU[rotated])+)
   apply (rule return_wpU assert_wpU)+
   apply (rule hoare_chainU[OF gets_wpU, rotated]) 
   apply (assumption)
@@ -394,7 +225,7 @@ definition
    }"
 
 lemma set_ptr_sp: "\<lbrace>R\<rbrace> set_ptr p v \<lbrace>\<lambda>_. (p \<mapsto>u v \<and>& (p \<mapsto>u - -& R))\<rbrace>u" 
-  apply (clarsimp simp: set_ptr_def, (rule hoare_seq_ext[rotated])+)
+  apply (clarsimp simp: set_ptr_def, (rule hoare_seq_extU[rotated])+)
   apply (rule return_wpU assert_wpU modify_wpU)+
   apply (rule hoare_chainU[OF gets_wpU, rotated]) 
   apply (assumption)
@@ -484,7 +315,7 @@ by (clarsimp simp: pred_conj_def maps_to_ex_def maps_to_def)
 
 
 lemma move_ptr_validU:"\<lbrace>(p \<mapsto>u v \<and>* p' \<mapsto>u -)\<rbrace> move_ptr p p' \<lbrace>\<lambda>_. (p \<mapsto>u v \<and>* p' \<mapsto>u v)\<rbrace>u"
-  apply (clarsimp simp: move_ptr_def, rule hoare_seq_ext)
+  apply (clarsimp simp: move_ptr_def, rule hoare_seq_extU)
 apply (rule hoare_chainU, rule get_ptr_sp, assumption, assumption)
   apply (rule hoare_chainU[OF set_ptr_sp])
  apply (assumption) 
