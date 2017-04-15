@@ -49,69 +49,65 @@ val sep_select_pre_method  =  sep_select_generic_method false [@{thm hoare_eq_pr
 *}
 
 method_setup sep_select_pre = {*
-
-Scan.lift (Scan.repeat Parse.int) >> sep_select_pre_method
-
+  Scan.lift (Scan.repeat Parse.int) >> sep_select_pre_method
 *}
 
 method_setup sep_select_post = {*
-
-Scan.lift (Scan.repeat Parse.int) >> sep_select_post_method
-
+  Scan.lift (Scan.repeat Parse.int) >> sep_select_post_method
 *}
 
 lemma strong_sep_impl_sep_wp:
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>_. (\<lambda>s. (Q \<and>* R) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. ( P \<and>* (Q \<longrightarrow>* R) ) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>_. (\<lambda>s.(R) (sep_lift s))\<rbrace>"
- apply (atomize)
- apply (erule_tac x="(Q \<longrightarrow>* R)" in allE)
- apply (rule hoare_strengthen_post)
- apply (assumption)
- apply (sep_mp)
- apply (sep_solve)
-done
+  apply (atomize)
+  apply (erule_tac x="(Q \<longrightarrow>* R)" in allE)
+  apply (rule hoare_strengthen_post)
+   apply (assumption)
+  apply (sep_mp)
+  apply (sep_solve)
+  done
 
 lemma extract_exists: "((\<lambda>s. \<exists>x. (P x) s) \<and>* R) s \<Longrightarrow> \<exists>x. (P x \<and>*  R) s"
   apply (clarsimp simp: sep_conj_def, fastforce)
-done
-
+  done
+    
 lemma extract_all: "((\<lambda>s. \<forall>x. (P x) s) \<and>* R) s \<Longrightarrow> \<forall>x. (P x \<and>*  R) s"
   apply (clarsimp simp: sep_conj_def, fastforce)
-done
-
+  done
+    
 schematic_goal strong_sep_impl_sep_wp':
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>rv. (\<lambda>s. (Q rv \<and>* R) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. ( P \<and>* (?f Q R)) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . R rv (sep_lift s)\<rbrace>"
- apply (atomize)
- apply (erule_tac x="(\<lambda>s. \<forall>x. (Q x \<longrightarrow>* R x) s)" in allE)
- apply (rule hoare_strengthen_post)
- apply (assumption)
- apply (sep_drule (direct)  extract_all)
- apply (erule_tac x=r in allE)
- apply (sep_solve)
-done
-
+  apply (atomize)
+  apply (erule_tac x="(\<lambda>s. \<forall>x. (Q x \<longrightarrow>* R x) s)" in allE)
+  apply (rule hoare_strengthen_post)
+   apply (assumption)
+  apply (sep_drule (direct)  extract_all)
+  apply (erule_tac x=r in allE)
+  apply (sep_solve)
+  done
+    
 lemma strong_sep_impl_sep_wp'':
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R x) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>rv. (\<lambda>s. (Q rv \<and>* R rv) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. ( P \<and>* (Q x \<longrightarrow>* R x)) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . R rv (sep_lift s)\<rbrace>"
- apply (atomize)
- apply (erule_tac x="(\<lambda>x. (Q x \<longrightarrow>* R x))" in allE)
- apply (rule hoare_strengthen_post)
- apply (assumption)
- apply (sep_solve)
-done
-
-
+  apply (atomize)
+  apply (erule_tac x="(\<lambda>x. (Q x \<longrightarrow>* R x))" in allE)
+  apply (rule hoare_strengthen_post)
+   apply (assumption)
+  apply (sep_solve)
+  done
+    
+    
 lemma auto_wp:"\<lbrace>P \<rbrace> f \<lbrace>Q \<rbrace> \<Longrightarrow> \<lbrace>\<lambda>s.  P s \<and> (\<forall>s x. Q x s \<longrightarrow> R x s)\<rbrace> f \<lbrace>R\<rbrace>"
-by (clarsimp simp: valid_def split:prod.splits)
-
+  by (clarsimp simp: valid_def split:prod.splits)
+    
 lemma strong_sep_impl_sep_wpE:
-"\<And>sep_lift. (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>) \<Longrightarrow>
-                  \<lbrace>(\<lambda>s. ( P \<and>* (Q \<longrightarrow>* R)) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>"
- apply (atomize)
+  "\<And>sep_lift. (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>) \<Longrightarrow>
+  \<lbrace>(\<lambda>s. ( P \<and>* (Q \<longrightarrow>* R)) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>"
+  apply (atomize)
   apply (erule_tac x="(Q \<longrightarrow>* R)" in allE)
   apply (simp add: valid_def split_def validE_def)
   apply (rule allI)
@@ -122,15 +118,15 @@ lemma strong_sep_impl_sep_wpE:
   apply (rule ballI)
   apply (erule_tac x="x" in ballE)
    apply (clarsimp split: sum.splits)
-  apply (sep_solve)
+   apply (sep_solve)
   apply (clarsimp split: sum.splits)
-done
+  done
 
 lemma strong_sep_impl_sep_wp_side:
- "\<And>sep_lift.
+  "\<And>sep_lift.
   (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s)) and K (P')\<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>) \<Longrightarrow> P' \<Longrightarrow>
   \<lbrace>(\<lambda>s. (P \<and>* (Q \<longrightarrow>* R)) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>"
- apply (atomize)
+  apply (atomize)
   apply (erule_tac x="(\<lambda>s. (Q \<longrightarrow>* R) s)" in allE)
   apply (rule hoare_chain)
     apply (assumption)
@@ -138,108 +134,108 @@ lemma strong_sep_impl_sep_wp_side:
   apply (clarsimp)+
   apply (sep_solve)
   done
-
+    
 lemma strong_sep_impl_sep_wp_side':
- "\<And>sep_lift.
+  "\<And>sep_lift.
   (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s)) and K (P')\<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>) \<Longrightarrow>
   \<lbrace>(\<lambda>s. ((P \<and>* (Q \<longrightarrow>* R)) and K (P')) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>"
- apply (atomize)
- apply (erule_tac x="(\<lambda>s. (Q \<longrightarrow>* R) s)" in allE)
- apply (rule hoare_chain)
- apply (assumption)
- apply (clarsimp)+
- apply (sep_solve)
-done
-
+  apply (atomize)
+  apply (erule_tac x="(\<lambda>s. (Q \<longrightarrow>* R) s)" in allE)
+  apply (rule hoare_chain)
+    apply (assumption)
+   apply (clarsimp)+
+  apply (sep_solve)
+  done
+    
 lemma strong_sep_impl_sep_wp_side'':
- "\<And>sep_lift.
+  "\<And>sep_lift.
   (\<And>R. \<lbrace>(\<lambda>s. ((P \<and>* R) and K P')  (sep_lift s))\<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>) \<Longrightarrow>
   \<lbrace>(\<lambda>s. ((P \<and>* (Q \<longrightarrow>* R)) and K (P')) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>"
- apply (atomize)
- apply (erule_tac x="(\<lambda>s. (Q \<longrightarrow>* R) s)" in allE)
- apply (rule hoare_chain)
- apply (assumption)
- apply (clarsimp)+
- apply (sep_solve)
-done
-
+  apply (atomize)
+  apply (erule_tac x="(\<lambda>s. (Q \<longrightarrow>* R) s)" in allE)
+  apply (rule hoare_chain)
+    apply (assumption)
+   apply (clarsimp)+
+  apply (sep_solve)
+  done
+    
 lemma strong_sep_impl_sep_wp_sideE:
   "\<And>sep_lift.
   (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s)) and K (P')\<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>) \<Longrightarrow> P' \<Longrightarrow>
   \<lbrace>(\<lambda>s. (P \<and>* (Q \<longrightarrow>* R)) (sep_lift s)) \<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>"
- apply (atomize)
+  apply (atomize)
   apply (erule_tac x="(Q \<longrightarrow>* R)" in allE)
   apply (rule hoare_chainE)
      apply (assumption)
     apply (clarsimp)
    apply (sep_solve)+
   done
-
+    
 lemma strong_sep_impl_sep_wp_sideE':
-"\<And>sep_lift.
+  "\<And>sep_lift.
 (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s))  and K (P')\<rbrace> f \<lbrace>\<lambda>_ s. (Q \<and>* R) (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. ((P \<and>* (Q \<longrightarrow>* R)) and K (P')) (sep_lift s))\<rbrace> f \<lbrace>\<lambda>_ s. R (sep_lift s)\<rbrace>, \<lbrace>E\<rbrace>"
- apply (atomize)
+  apply (atomize)
   apply (erule_tac x="(Q \<longrightarrow>* R)" in allE)
   apply (rule hoare_chainE)
      apply (assumption)
     apply (clarsimp)
    apply (sep_solve)+
   done
-
-
+    
+    
 lemma strong_sep_impl_sep_wp_rv:
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. (P \<and>* R) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>x. (\<lambda>s. (Q x \<and>* R) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. ( P \<and>* (\<lambda>s. \<forall>x. (Q x  \<longrightarrow>* R x) s ))(sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . (R rv) (sep_lift s)\<rbrace>"
- apply (rule hoare_chain, assumption)
- apply (sep_solve)
- apply (sep_select_asm 2, erule sep_conj_sep_impl2)
- apply (fastforce)
-done
-
+  apply (rule hoare_chain, assumption)
+   apply (sep_solve)
+  apply (sep_select_asm 2, erule sep_conj_sep_impl2)
+  apply (fastforce)
+  done
+    
 lemma strong_sep_impl_sep_wp_rv':
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. ((P \<and>* R) and K(p')) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>x. (\<lambda>s. (Q x \<and>* R) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. (( P \<and>* (\<lambda>s. \<forall>x. (Q x  \<longrightarrow>* R x) s )) and K(p') )(sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . (R rv) (sep_lift s)\<rbrace>"
   apply (rule hoare_chain, assumption)
- apply (sep_solve)
- apply (sep_select_asm 2, erule sep_conj_sep_impl2)
- apply (fastforce)
-done
-
+   apply (sep_solve)
+  apply (sep_select_asm 2, erule sep_conj_sep_impl2)
+  apply (fastforce)
+  done
+    
 lemma strong_sep_impl_sep_wp_rv'':
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. ((P \<and>* R)) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>x. (\<lambda>s. ((Q x \<and>* R) and K (p'' x)) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. (( P \<and>* (\<lambda>s. \<forall>x. p'' x \<longrightarrow> (Q x  \<longrightarrow>* R x) s )))(sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . (R rv) (sep_lift s)\<rbrace>"
-apply (rule hoare_chain, assumption)
- apply (sep_solve)
- apply (clarsimp)
- apply (sep_select_asm 2, erule sep_conj_sep_impl2)
- apply (fastforce)
-done
-
-
+  apply (rule hoare_chain, assumption)
+   apply (sep_solve)
+  apply (clarsimp)
+  apply (sep_select_asm 2, erule sep_conj_sep_impl2)
+  apply (fastforce)
+  done
+    
+    
 lemma strong_sep_impl_sep_wp_rv''':
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>(\<lambda>s. ((P \<and>* R) and K(p')) (sep_lift s) )\<rbrace> f \<lbrace>\<lambda>x. (\<lambda>s. ((Q x \<and>* R) and K (p'' x)) (sep_lift s))\<rbrace>) \<Longrightarrow>
      \<lbrace>(\<lambda>s. (( P \<and>* (\<lambda>s. \<forall>x. p'' x \<longrightarrow> (Q x  \<longrightarrow>* R x) s )) and K(p') )(sep_lift s))\<rbrace> f \<lbrace>\<lambda>rv s . (R rv) (sep_lift s)\<rbrace>"
-apply (rule hoare_chain, assumption)
- apply (sep_solve)
- apply (clarsimp)
- apply (sep_select_asm 2, erule sep_conj_sep_impl2)
- apply (fastforce)
-done
-
+  apply (rule hoare_chain, assumption)
+   apply (sep_solve)
+  apply (clarsimp)
+  apply (sep_select_asm 2, erule sep_conj_sep_impl2)
+  apply (fastforce)
+  done
+    
 lemma strong_sep_impl_sep_wp_rv_ex_post:
-    "\<And>sep_lift.
+  "\<And>sep_lift.
      (\<And>R. \<lbrace>\<lambda>s. ((P \<and>* R) and K(p')) (sep_lift s)\<rbrace> f \<lbrace>\<lambda>x s. \<exists>t. ((Q x t  \<and>* R) and K (p'' x t)) (sep_lift s)\<rbrace>) \<Longrightarrow>
       \<lbrace>\<lambda>s.  (( P \<and>* (\<lambda>s. (\<forall>x t.  p'' x t \<longrightarrow> (Q x t  \<longrightarrow>* R x t) (s )))) and K(p') ) (sep_lift s) \<rbrace> f \<lbrace>\<lambda>rv s . \<exists>t. (R rv t) (sep_lift s) \<rbrace>"
   apply (rule hoare_chain, assumption)+
-apply (clarsimp)
-  apply (sep_cancel)
+   apply (clarsimp)
+   apply (sep_cancel)
   apply (clarsimp simp: sep_conj_def sep_impl_def)
-by (metis (full_types) sep_add_commute sep_disj_commute)
+  by (metis (full_types) sep_add_commute sep_disj_commute)
 
 lemma strong_sep_impl_sep_wp_rv_ex_pre_post:
   "\<And>sep_lift.
@@ -253,7 +249,7 @@ lemma strong_sep_impl_sep_wp_rv_ex_pre_post:
    apply (rule_tac x=t' in exI, simp)
   apply (clarsimp simp: sep_conj_def sep_impl_def)
   by (metis (full_types) sep_add_commute sep_disj_commute)
-
+    
 ML {*
 local
   val simpset = simpset_of (
@@ -362,7 +358,7 @@ method_setup wp = {* apply_rules_args false *}
 lemma boxsolve: "P s \<Longrightarrow> (\<box> \<and>* (\<box> \<longrightarrow>* P)) s"
   apply (clarsimp)
   apply (sep_solve)
-done
+  done
 
 (* experimental sep_wp method *)
 
