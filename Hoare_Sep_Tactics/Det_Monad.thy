@@ -164,9 +164,9 @@ section "Hoare-Logic Validity"
 text {* Partial correctness *}
 definition
   valid :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool" 
-  ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>v")
+  ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>")
 where
-  "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>v \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in \<not>f' \<longrightarrow> Q r' s')"
+  "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace> \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in \<not>f' \<longrightarrow> Q r' s')"
 
 text {* Total correctness *}
 definition
@@ -194,62 +194,82 @@ named_theorems sp
 named_theorems sp_pre
 
 lemma bind_wp[wp']:
-  "(\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>v) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B\<rbrace>v \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>v"
+  "(\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B\<rbrace> \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>"
   unfolding valid_def Let_def bind_def by (fastforce split: prod.splits)  
 
+lemma hoare_seq_ext[sp]:
+  "\<lbrace>A\<rbrace> f \<lbrace>B \<rbrace> \<Longrightarrow> (\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>) \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>"
+  by (rule bind_wp)
+
 lemma hoare_chain:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>v; \<And>s. R s \<Longrightarrow> P s; \<And>r s. Q r s \<Longrightarrow> S r s \<rbrakk> \<Longrightarrow> \<lbrace>R\<rbrace> f \<lbrace>S\<rbrace>v"
+  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>; \<And>s. R s \<Longrightarrow> P s; \<And>r s. Q r s \<Longrightarrow> S r s \<rbrakk> \<Longrightarrow> \<lbrace>R\<rbrace> f \<lbrace>S\<rbrace>"
   by (fastforce simp: valid_def)
 
 lemma hoare_pre[wp_pre']:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>v; \<And>s. R s \<Longrightarrow> P s \<rbrakk> \<Longrightarrow> \<lbrace>R\<rbrace> f \<lbrace>Q\<rbrace>v"
+  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>; \<And>s. R s \<Longrightarrow> P s \<rbrakk> \<Longrightarrow> \<lbrace>R\<rbrace> f \<lbrace>Q\<rbrace>"
   by (rule hoare_chain) blast
+
+lemmas hoare_weaken_pre = hoare_pre
 
 lemma hoare_post[sp_pre]:
-  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>R\<rbrace>v; \<And>rv s. R rv s \<Longrightarrow> Q rv s \<rbrakk> \<Longrightarrow> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>v"
+  "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>R\<rbrace>; \<And>rv s. R rv s \<Longrightarrow> Q rv s \<rbrakk> \<Longrightarrow> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>"
   by (rule hoare_chain) blast
 
-lemma get_wp[wp']: "\<lbrace>\<lambda>s. P s s\<rbrace> get \<lbrace>P\<rbrace>v"
+lemmas hoare_strengthen_post = hoare_post
+
+lemma get_wp[wp']: "\<lbrace>\<lambda>s. P s s\<rbrace> get \<lbrace>P\<rbrace>"
   by (clarsimp simp: get_def valid_def)
     
-lemma put_wp[wp']: "\<lbrace>\<lambda>s'. P () s\<rbrace> put s \<lbrace>P\<rbrace>v"
+lemma put_wp[wp']: "\<lbrace>\<lambda>s'. P () s\<rbrace> put s \<lbrace>P\<rbrace>"
   by (clarsimp simp: put_def valid_def)
     
-lemma fail_wp[wp']: "\<lbrace>\<lambda>s. True\<rbrace> fail \<lbrace>P\<rbrace>v"
+lemma fail_wp[wp']: "\<lbrace>\<lambda>s. True\<rbrace> fail \<lbrace>P\<rbrace>"
   by (simp add: fail_def valid_def)
 
-lemma return_wp[wp']: "\<lbrace>P x\<rbrace> return x \<lbrace>P\<rbrace>v"
+lemma return_wp[wp']: "\<lbrace>P x\<rbrace> return x \<lbrace>P\<rbrace>"
   by (simp add: valid_def return_def)
 
 lemma if_wp[wp']:
-  "\<lbrakk> Q \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>P\<rbrace>v; \<not>Q \<Longrightarrow> \<lbrace>B\<rbrace> g \<lbrace>P\<rbrace>v\<rbrakk> \<Longrightarrow>
-  \<lbrace>\<lambda>s. (Q \<longrightarrow> A s) \<and> (\<not>Q \<longrightarrow> B s)\<rbrace> if Q then f else g \<lbrace>P\<rbrace>v"
+  "\<lbrakk> Q \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>P\<rbrace>; \<not>Q \<Longrightarrow> \<lbrace>B\<rbrace> g \<lbrace>P\<rbrace>\<rbrakk> \<Longrightarrow>
+  \<lbrace>\<lambda>s. (Q \<longrightarrow> A s) \<and> (\<not>Q \<longrightarrow> B s)\<rbrace> if Q then f else g \<lbrace>P\<rbrace>"
   by auto
 
+lemma prod_wp[wp']:
+  "(\<And>a b. x = (a,b) \<Longrightarrow> \<lbrace>P a b\<rbrace> f a b \<lbrace>Q\<rbrace>) \<Longrightarrow> \<lbrace>P (fst x) (snd x)\<rbrace> case x of (a, b) \<Rightarrow> f a b \<lbrace>Q\<rbrace>"
+  by (cases x) simp
+
+lemma prod_sp[sp]:
+  "(\<And>a b. x = (a,b) \<Longrightarrow> \<lbrace>P\<rbrace> f a b \<lbrace>Q a b\<rbrace>) \<Longrightarrow> \<lbrace>P\<rbrace> case x of (a, b) \<Rightarrow> f a b \<lbrace>Q (fst x) (snd x)\<rbrace>"
+  by (cases x) simp
+
 text {* Weakest precondition method setup *}
-method wp = (rule wp_pre', WP.wp wp', assumption?)
+method wp uses wp = (rule wp_pre', WP.wp wp wp', assumption?)
 
 text {* Strongest postcondition method setup *}
-method sp = ((rule sp)+, (rule sp_pre, rule sp, assumption?)?)
+method sp declares sp = ((rule sp)+, (rule sp_pre, rule sp, assumption?)?)
 
 
 (* partial correctness assumes asserts *)
 lemma assert_wp[wp']:
-  "\<lbrace>\<lambda>s. Q \<longrightarrow> P () s\<rbrace> assert Q \<lbrace>P\<rbrace>v"
+  "\<lbrace>\<lambda>s. Q \<longrightarrow> P () s\<rbrace> assert Q \<lbrace>P\<rbrace>"
   unfolding assert_def by wp auto
 
 lemma state_assert_wp[wp']:
-  "\<lbrace>\<lambda>s. Q s \<longrightarrow> P () s\<rbrace> state_assert Q \<lbrace>P\<rbrace>v"
+  "\<lbrace>\<lambda>s. Q s \<longrightarrow> P () s\<rbrace> state_assert Q \<lbrace>P\<rbrace>"
   unfolding state_assert_def by wp
 
 lemma modify_wp[wp']:
-  "\<lbrace>\<lambda>s. P () (f s)\<rbrace> modify f \<lbrace>P\<rbrace>v"
+  "\<lbrace>\<lambda>s. P () (f s)\<rbrace> modify f \<lbrace>P\<rbrace>"
   unfolding modify_def by wp
 
+lemma gets_wp[wp']:
+  "\<lbrace>\<lambda>s. P (f s) s\<rbrace> gets f \<lbrace>P\<rbrace>"
+  unfolding gets_def by wp
+
 lemma whileLoop_wp:
-  "\<lbrakk> \<And>r. \<lbrace> \<lambda>s. I r s \<and> g r \<rbrace> b r \<lbrace> I \<rbrace>v;
+  "\<lbrakk> \<And>r. \<lbrace> \<lambda>s. I r s \<and> g r \<rbrace> b r \<lbrace> I \<rbrace>;
      \<And>r s. \<lbrakk> I r s; \<not> g r \<rbrakk> \<Longrightarrow> Q r s \<rbrakk> \<Longrightarrow>
-  \<lbrace> I r \<rbrace> whileLoop g b r \<lbrace> Q \<rbrace>v"
+  \<lbrace> I r \<rbrace> whileLoop g b r \<lbrace> Q \<rbrace>"
   unfolding whileLoop_def whileLoop_opt_def valid_def
   apply (clarsimp split: option.splits)
   apply (frule while_option_stop)
@@ -262,6 +282,24 @@ lemma whileLoop_wp:
    apply simp
   apply simp
   done
+
+definition
+  whileLoop_inv :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('s,'a) det_monad) \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> ('s,'a) det_monad"
+where
+  "whileLoop_inv g b I \<equiv> whileLoop g b"
+
+lemma whileLoop_add_inv: "whileLoop g b = whileLoop_inv g b I"
+  by (clarsimp simp: whileLoop_inv_def)
+
+lemma whileLoop_inv_wp[wp']:
+  "\<lbrakk> \<And>r. \<lbrace> \<lambda>s. I r s \<and> g r \<rbrace> b r \<lbrace> I \<rbrace>;
+     \<And>r s. \<lbrakk> I r s; \<not> g r \<rbrakk> \<Longrightarrow> Q r s \<rbrakk> \<Longrightarrow>
+  \<lbrace> I r \<rbrace> whileLoop_inv g b I r \<lbrace> Q \<rbrace>"
+  unfolding whileLoop_inv_def by (rule whileLoop_wp)
+
+lemma return_sp[sp]:
+  "\<lbrace>P\<rbrace> return x \<lbrace>\<lambda>rv s. rv = x \<and> P s\<rbrace>"
+  by wp simp
 
 section "Total Correctness Rules"
 

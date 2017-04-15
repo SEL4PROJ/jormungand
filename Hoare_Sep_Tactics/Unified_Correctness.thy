@@ -330,7 +330,7 @@ lemma sept_success_ex:
    apply (clarsimp simp: plus_fun_def plus_option_def sep_disj_fun_def sep_disj_prod_def sep_disj_option_def plus_bool_def sep_disj_bool_def split: if_splits)
    apply (fastforce)
   apply (clarsimp simp: plus_fun_def plus_prod_def plus_option_def sep_disj_fun_def sep_disj_prod_def sep_disj_option_def plus_bool_def sep_disj_bool_def split: if_splits)
-  apply (fastforce)
+  apply (fastforce simp: pred_conj_def)
   done
 
 
