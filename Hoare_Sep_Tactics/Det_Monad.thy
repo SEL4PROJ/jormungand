@@ -28,7 +28,7 @@ adhoc_overloading
 
 (* always print do-notation *)
 translations
-  "CONST bind_do" == "CONST bind"
+  "CONST bind_do" == "CONST Monad_Syntax.bind"
 
 
 section "State Monad Definitions"
@@ -112,7 +112,6 @@ lemma whileLoop_opt_Some:
    apply (rule conjI)
     apply clarsimp
     apply (subst least_while_body_guard[where f'=f])
-    apply clarsimp
     apply (subst while_body_aux[where f=f'' and f'=f])
     apply simp
    apply (rule exI)
@@ -122,17 +121,16 @@ lemma whileLoop_opt_Some:
   apply (rule conjI)
    apply clarsimp
    apply (subst least_while_body_guard[where f'=f])
-   apply clarsimp
    apply (subst while_body_aux[where f=f'' and f'=f])
    apply simp
    apply (subst least_while_body_guard[where f=True and f'=f''])
-   apply simp    
+   apply simp
   apply (rule exI)
   apply (subst while_body_aux)
   apply simp
   done
 
-lemma while_body_apply:
+lemma while_body_apply[simp]:
   "while_body b (r, s, f) = (fst (b r s), fst (snd (b r s)), f \<or> snd (snd (b r s)))"
   by (simp add: while_body_def split: prod.splits)
 
@@ -140,21 +138,14 @@ lemma whileLoop_unfold:
   "whileLoop g b x = (if g x then b x >>= whileLoop g b else return x)"
   unfolding whileLoop_def whileLoop_opt_def
   apply (rule ext)
+  apply (rename_tac s)
   apply (subst while_option_unfold)
-  apply (subst whileLoop_opt_def[symmetric])
-  apply (clarsimp simp: return_def bind_def split: prod.splits)
-  apply (clarsimp simp: while_body_apply split: option.splits)
-   apply (subst (asm) whileLoop_opt_def[symmetric])
+  apply (clarsimp simp: whileLoop_opt_def[symmetric] return_def bind_def split: prod.splits)
+  apply (clarsimp split: option.splits)
    apply (drule whileLoop_opt_Some[where f''=False])
    apply clarsimp
-  apply (rule conjI)
-   apply (subst (asm) whileLoop_opt_def[symmetric])
-   apply (drule_tac f''=ba in whileLoop_opt_Some)
-   apply clarsimp
+  apply (drule_tac f''="snd (snd (b x s))" in whileLoop_opt_Some)
   apply clarsimp
-  apply (subst (asm) whileLoop_opt_def[symmetric])
-  apply (drule_tac f''=ba in whileLoop_opt_Some)
-  apply simp
   done
   
 
