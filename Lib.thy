@@ -16,8 +16,7 @@ chapter "Library"
 
 theory Lib
 imports
-  String_Compare
-  NICTATools
+  Eisbach_Methods
   "~~/src/HOL/Library/Prefix_Order"
 begin
 
