@@ -1,4 +1,4 @@
-session Jormungand = "HOL-Word" +
+session Jormungand = HOL +
   theories
     "Hoare_Sep_Tactics/Hoare_Sep_Tactics"
     "Hoare_Sep_Tactics/Extended_Separation_Algebra"
