@@ -21,12 +21,11 @@ imports
   Det_Monad
 begin
 
-(* FIXME: nat is an example, generalise to ('p,'v) heaps *)
-type_synonym heap = "nat \<Rightarrow> nat option"
-type_synonym machine = "heap \<times> bool"
+type_synonym ('a, 'b) heap = "'a \<Rightarrow> 'b option"
+type_synonym ('a, 'b) machine = "('a, 'b) heap \<times> bool"
 
-abbreviation "heap :: machine \<Rightarrow> heap \<equiv> fst"
-abbreviation "nf :: machine \<Rightarrow> bool \<equiv> snd"
+abbreviation "heap ::  ('a, 'b) machine \<Rightarrow> ('a, 'b) heap \<equiv> fst"
+abbreviation "nf ::  ('a, 'b) machine \<Rightarrow> bool \<equiv> snd"
 
 instantiation "prod" :: (cancellative_sep_algebra, cancellative_sep_algebra) cancellative_sep_algebra
 begin
@@ -43,12 +42,12 @@ end
   
 
 definition
-  maps_to:: "nat \<Rightarrow> nat \<Rightarrow> machine \<Rightarrow> bool" ("_ \<mapsto>u _" [56,51] 56)
+  maps_to:: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) machine \<Rightarrow> bool" ("_ \<mapsto>u _" [56,51] 56)
 where
   "x \<mapsto>u y \<equiv> \<lambda>h. heap h = [x \<mapsto> y] \<and> nf h "
 
 definition
-  maps_to_ex :: "nat \<Rightarrow>  machine \<Rightarrow> bool" ("_ \<mapsto>u -" [56] 56)
+  maps_to_ex :: "'a \<Rightarrow>  ('a, 'b) machine \<Rightarrow> bool" ("_ \<mapsto>u -" [56] 56)
 where
   "x \<mapsto>u - \<equiv> (\<lambda>s. \<exists>y. (x \<mapsto>u y) s)"
 
@@ -60,19 +59,18 @@ lemma maps_to_maps_to_ex [elim!]:
 lemma maps_to_ex_simp[simp]: " (p \<mapsto>u -) ([p \<mapsto> v], True)" 
   by (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
 
+type_synonym ('a, 'b) machine_pred = "('a, 'b) machine \<Rightarrow> bool"
 
-(* FIXME: add types *)
 definition
-  sept (infix "-&" 50)
+  sept :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred" (infix "-&" 50) 
 where
   "sept P Q \<equiv> \<lambda>s. \<exists>h h'. P h \<and> Q h' \<and>
                          (if nf h \<and> nf s
                           then h + s = h' \<and> h ## s
                           else nf h' \<longrightarrow> (nf h  \<longrightarrow> h ## h') \<and> (nf s \<longrightarrow> s ## h'))"
 
-(* FIXME: add types *)
 definition
-  sep_con (infix "\<and>&" 50)
+  sep_con :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred" (infix "\<and>&" 50)
 where
   "sep_con P Q \<equiv> \<lambda>s. \<exists>h h'. P h \<and>  Q h' \<and>
                             (if nf h \<and> nf h'
@@ -80,8 +78,7 @@ where
                              else nf s \<longrightarrow> (nf h \<longrightarrow> h ## s) \<and> (nf h' \<longrightarrow>  s ## h'))"
 
 
-(* FIXME: name *)
-lemma "(p \<mapsto>u v -& p \<mapsto>u v) s \<Longrightarrow> \<box> s" 
+lemma delete_pointer_empty: "(p \<mapsto>u v -& p \<mapsto>u v) s \<Longrightarrow> \<box> s" 
   apply (clarsimp simp: sept_def  maps_to_def zero_prod_def sep_empty_def split: if_splits)
   apply (drule mp)
    apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def  sep_disj_option_def
@@ -107,15 +104,13 @@ lemma sep_con_commute:
    apply (clarsimp simp: sep_disj_commute sep_add_commute)+
   using sep_disj_commuteI by fastforce
 
-(* FIXME: types *)
 definition
-  sep_imp (infix "\<longrightarrow>&" 50)
+  sep_imp :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred" (infix "\<longrightarrow>&" 50)
 where
   "sep_imp P Q \<equiv> not (sept P (not Q))"
 
-(* FIXME: types *)
 definition
-  sep_snake
+  sep_snake :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred"
 where
   "sep_snake P Q \<equiv> not ( sep_con P (not Q))"
 
@@ -205,8 +200,7 @@ definition
      return (the_f v (0))
    }"
 
-(* FIXME: name *)
-lemma [simp]:
+lemma maps_to_simp [simp]:
   "(p \<mapsto>u y) h = (h = ([p \<mapsto> y], True))"
   by (metis (mono_tags, lifting) fst_conv maps_to_def prod_eqI snd_conv)
 
@@ -382,8 +376,7 @@ lemma move_ptr_validU:
   apply (clarsimp simp: pred_conj_def sep_con_def sept_def)
   done
 
-(* FIXME: name *)
-lemma "\<exists>s. (nf -& nf) s \<and> \<not>nf s"
+lemma sep_crashable: "\<exists>s. (nf -& nf) s \<and> \<not>nf s"
   apply (rule_tac x="(undefined,False)" in exI)
   apply (clarsimp simp: sept_def)
   apply (rule_tac x="[p \<mapsto> v]" in exI)

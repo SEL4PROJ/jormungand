@@ -230,9 +230,9 @@ end
   
 context sep_algebra begin  
 
-(* FIXME: type *)
+
 definition
-  septraction (infix "-*" 25)
+  septraction :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "-*" 25)
 where
   "septraction P Q = (not (P \<longrightarrow>* not Q))"
   
@@ -245,9 +245,8 @@ lemma septraction_impl2: "(P -* Q) s \<Longrightarrow> (\<And>s. Q s \<Longright
   apply (clarsimp simp: septraction_def pred_neg_def)
   using sep_impl_def by auto
     
-(* FIXME: type *)
 definition
-  sep_coimpl (infix "\<leadsto>*" 24)
+  sep_coimpl :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<leadsto>*" 24)
 where
   "sep_coimpl P Q \<equiv> \<lambda>s. \<not> (P \<and>* not Q) s"
   
@@ -289,11 +288,12 @@ lemma disjointness_equiv:
   using sep_disj_addD1 by blast
 
     
-(* FIXME: type *)
-definition
+definition 
+  sep_min :: "(('a :: sep_algebra) \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" where
   "sep_min P \<equiv> P and (P \<leadsto>* \<box>)"
 
 definition
+  sep_subtract :: "(('a :: sep_algebra) \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" where
   "sep_subtract P Q \<equiv> P and (Q \<leadsto>* \<box>)"
 
 lemma sep_min_subtract_subtract: "sep_min P = sep_subtract P P"
@@ -408,18 +408,19 @@ lemma sep_antimp': "P s \<Longrightarrow> (Q \<leadsto>* (Q -* P)) s \<and> P s"
   done
     
     
-(* FIXME: type *)
+
 definition
-  "sep_super_conj P \<equiv> P and (ALLS R. (sep_true \<longrightarrow>* (P \<leadsto>* R)))"
+    sep_precise_conj :: "(('a :: sep_algebra) \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" where
+  "sep_precise_conj P \<equiv> P and (ALLS R. (sep_true \<longrightarrow>* (P \<leadsto>* R)))"
   
-notation sep_super_conj (infix "\<and>@" 50)
+notation sep_precise_conj (infix "\<and>@" 50)
   
-(* FIXME: type *)
 definition
+  coprecise ::  "(('a :: sep_algebra) \<Rightarrow> bool) \<Rightarrow>  bool" where
   "coprecise P = (\<forall>s h h'. P h \<longrightarrow> P h' \<longrightarrow> s \<preceq> h \<longrightarrow> s \<preceq> h' \<longrightarrow> s \<noteq> 0 \<longrightarrow> h = h')"
 
-(* FIXME: type *)
 definition
+  cointuitionistic :: "(('a :: sep_algebra) \<Rightarrow> bool) \<Rightarrow> bool" where
   "cointuitionistic P = (\<forall>h h'. P h \<and> h' \<preceq> h \<longrightarrow> P h')"
   
 lemma intuitionistic_def':"intuitionistic P = (\<forall>s R. (P \<and>* R) s \<longrightarrow> P s)"

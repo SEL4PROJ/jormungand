@@ -442,8 +442,7 @@ lemma list_nonempty:
   "0 < i \<Longrightarrow> list i xs = (EXS h t. \<langle>i= (h) \<and> i\<noteq>0 \<and> xs = h#t \<rangle> and (EXS j. i \<mapsto> j ** list j (t)))"
   by (cases xs) auto
 
-(* FIXME: name *)
-lemma 
+lemma set_ptr_list_valid: 
   "\<lbrace>(p \<mapsto> - and (\<lambda>s. p \<noteq>0)) \<and>* list q qs\<rbrace>
      set_ptr p q
    \<lbrace>\<lambda>_. list p (p#qs)\<rbrace>"
@@ -538,8 +537,7 @@ lemma list_rev_valid_sp:
   done
 
 
-(* FIXME: name *)
-lemma "P s \<Longrightarrow> Q s \<Longrightarrow> (P \<and>* (Q -* (P and Q))) s"
+lemma sep_pred_conj_sep_conj: "P s \<Longrightarrow> Q s \<Longrightarrow> (P \<and>* (Q -* (P and Q))) s"
   by (metis disjoint_zero_sym pred_conj_def pred_neg_def sep_add_zero_sym sep_conjI
             sep_conj_commuteI sep_mp septraction_def)
 
