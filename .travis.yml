@@ -13,4 +13,4 @@ cache:
     - $HOME/.isabelle
 
 script:
-  $HOME/Isabelle2016-1/bin/isabelle build -v -D .
+  Isabelle2016-1/bin/isabelle build -v -D .
