@@ -9,7 +9,7 @@
  *)
 
 (*
- Unified Correctness reasoning in Separation Logic. Defines a 
+ Unified Correctness reasoning in Separation Logic. Defines a
  concrete model of type (heap x bool) as an early extension
  of SL to deal with failure.
 *)
@@ -39,7 +39,7 @@ begin
 instance
   by (intro_classes) (auto simp: zero_bool_def plus_bool_def sep_disj_bool_def)
 end
-  
+
 
 definition
   maps_to:: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) machine \<Rightarrow> bool" ("_ \<mapsto>u _" [56,51] 56)
@@ -56,13 +56,13 @@ lemma maps_to_maps_to_ex [elim!]:
   "(p \<mapsto>u v) s \<Longrightarrow> (p \<mapsto>u -) s"
   by (auto simp: maps_to_ex_def)
 
-lemma maps_to_ex_simp[simp]: " (p \<mapsto>u -) ([p \<mapsto> v], True)" 
+lemma maps_to_ex_simp[simp]: " (p \<mapsto>u -) ([p \<mapsto> v], True)"
   by (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
 
 type_synonym ('a, 'b) machine_pred = "('a, 'b) machine \<Rightarrow> bool"
 
 definition
-  sept :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred" (infix "-&" 50) 
+  sept :: "('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred \<Rightarrow> ('a, 'b) machine_pred" (infix "-&" 50)
 where
   "sept P Q \<equiv> \<lambda>s. \<exists>h h'. P h \<and> Q h' \<and>
                          (if nf h \<and> nf s
@@ -78,7 +78,7 @@ where
                              else nf s \<longrightarrow> (nf h \<longrightarrow> h ## s) \<and> (nf h' \<longrightarrow>  s ## h'))"
 
 
-lemma delete_pointer_empty: "(p \<mapsto>u v -& p \<mapsto>u v) s \<Longrightarrow> \<box> s" 
+lemma delete_pointer_empty: "(p \<mapsto>u v -& p \<mapsto>u v) s \<Longrightarrow> \<box> s"
   apply (clarsimp simp: sept_def  maps_to_def zero_prod_def sep_empty_def split: if_splits)
   apply (drule mp)
    apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def  sep_disj_option_def
@@ -155,7 +155,7 @@ section "Examples"
 
 definition
   "delete_ptr p = do {
-    state_assert (\<lambda>s.  s p \<noteq> None); 
+    state_assert (\<lambda>s.  s p \<noteq> None);
     modify (\<lambda>s. (\<lambda>p'. if p = p' then None else s p'))
   }"
 
@@ -194,7 +194,7 @@ lemma delete_ptr_sp:
 definition "the_f v d = (if (v = None) then d else (the v))"
 
 definition
-  "get_ptr p = do { 
+  "get_ptr p = do {
      v <- gets (\<lambda>s. s p);
      assert (v \<noteq> None);
      return (the_f v (0))
@@ -208,7 +208,7 @@ lemma get_ptr_sp:
   "\<lbrace>R\<rbrace> get_ptr p \<lbrace>\<lambda>rv. (p \<mapsto>u rv \<and>& (p \<mapsto>u rv -& R))\<rbrace>u"
   apply (clarsimp simp: get_ptr_def, (rule hoare_seq_extU[rotated])+)
     apply (rule return_wpU assert_wpU)+
-  apply (rule hoare_chainU[OF gets_wpU, rotated]) 
+  apply (rule hoare_chainU[OF gets_wpU, rotated])
    apply (assumption)
   apply (clarsimp simp: gets_def validU_def)
   apply (case_tac "(\<exists>y. a p = Some y)"; clarsimp simp: the_f_def  zero_option_def)
@@ -246,7 +246,7 @@ lemma set_ptr_sp:
   "\<lbrace>R\<rbrace> set_ptr p v \<lbrace>\<lambda>_. (p \<mapsto>u v \<and>& (p \<mapsto>u - -& R))\<rbrace>u"
   apply (clarsimp simp: set_ptr_def, (rule hoare_seq_extU[rotated])+)
     apply (rule return_wpU assert_wpU modify_wpU)+
-  apply (rule hoare_chainU[OF gets_wpU, rotated]) 
+  apply (rule hoare_chainU[OF gets_wpU, rotated])
    apply (assumption)
   apply (clarsimp simp: gets_def validU_def)
   apply (case_tac "(\<exists>y. a p = Some y)"; clarsimp simp: the_f_def maps_to_ex_def zero_option_def)
@@ -279,7 +279,7 @@ lemma set_ptr_sp:
   done
 
 
-definition "move_ptr p p' = get_ptr p \<bind> set_ptr p'" 
+definition "move_ptr p p' = get_ptr p \<bind> set_ptr p'"
 
 
 lemma sep_con_impl2:

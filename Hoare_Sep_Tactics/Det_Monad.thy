@@ -15,7 +15,7 @@ type_synonym ('s,'a) det_monad = "'s \<Rightarrow> 'a \<times> 's \<times> bool"
 definition
   bind :: "('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> ('s,'b) det_monad) \<Rightarrow> ('s,'b) det_monad"
 where
-  "bind f g \<equiv> \<lambda>s. let (r', s', f') = f s; 
+  "bind f g \<equiv> \<lambda>s. let (r', s', f') = f s;
                        (r'', s'', f'') = g r' s'
                    in (r'', s'', f' \<or> f'')"
 
@@ -24,7 +24,7 @@ definition
 
 (* use do-notation for this state monad *)
 adhoc_overloading
-  Monad_Syntax.bind bind 
+  Monad_Syntax.bind bind
 
 (* always print do-notation *)
 translations
@@ -59,7 +59,7 @@ definition
 
 definition
   while_body :: "('a \<Rightarrow> ('s, 'a) det_monad) \<Rightarrow> 'a \<times> 's \<times> bool \<Rightarrow> 'a \<times> 's \<times> bool"
-where 
+where
   "while_body b \<equiv> \<lambda>(rv,s,f). let (rv',s',f') = b rv s in (rv',s',f \<or> f')"
 
 definition
@@ -68,8 +68,8 @@ definition
 definition
   whileLoop :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('s, 'a) det_monad) \<Rightarrow> 'a \<Rightarrow> ('s,'a) det_monad"
 where
-  "whileLoop g b \<equiv> \<lambda>x s. case whileLoop_opt g b (x, s, False) of 
-                            Some r \<Rightarrow> r 
+  "whileLoop g b \<equiv> \<lambda>x s. case whileLoop_opt g b (x, s, False) of
+                            Some r \<Rightarrow> r
                           | None \<Rightarrow> (undefined, undefined, True)"
 
 notation (output)
@@ -97,13 +97,13 @@ next
 qed
 
 lemma least_while_body_guard:
-  "(LEAST k. \<not> g (fst ((while_body b ^^ k) (x, s, f)))) = 
+  "(LEAST k. \<not> g (fst ((while_body b ^^ k) (x, s, f)))) =
    (LEAST k. \<not> g (fst ((while_body b ^^ k) (x, s, f'))))"
   by (subst while_body_aux) simp
 
 lemma whileLoop_opt_Some:
   "whileLoop_opt g b (x, s, f) = Some (x', s', f')
-  \<Longrightarrow> whileLoop_opt g b (x, s, f'') = Some (x', s', if \<not>f then f'' \<or> f' else 
+  \<Longrightarrow> whileLoop_opt g b (x, s, f'') = Some (x', s', if \<not>f then f'' \<or> f' else
       snd (snd (the (whileLoop_opt g b (x, s, f'')))))"
   unfolding whileLoop_opt_def Let_def
   apply (clarsimp simp: while_option_def split: if_split_asm)
@@ -147,28 +147,28 @@ lemma whileLoop_unfold:
   apply (drule_tac f''="snd (snd (b x s))" in whileLoop_opt_Some)
   apply clarsimp
   done
-  
+
 
 
 section "Hoare-Logic Validity"
 
 text {* Partial correctness *}
 definition
-  valid :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool" 
+  valid :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool"
   ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>")
 where
   "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace> \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in \<not>f' \<longrightarrow> Q r' s')"
 
 text {* Total correctness *}
 definition
-  validNF :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool" 
+  validNF :: "('s \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> bool"
   ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>!")
 where
   "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>! \<equiv> \<forall>s. P s \<longrightarrow> (let (r',s',f') = m s in Q r' s' \<and> \<not>f')"
 
 text {* Unified correctness *}
 definition
-  validU :: "(('s \<times> bool)  \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> ('s \<times> bool) \<Rightarrow> bool) \<Rightarrow> bool" 
+  validU :: "(('s \<times> bool)  \<Rightarrow> bool) \<Rightarrow> ('s,'a) det_monad \<Rightarrow> ('a \<Rightarrow> ('s \<times> bool) \<Rightarrow> bool) \<Rightarrow> bool"
   ("\<lbrace>_\<rbrace>/ _ /\<lbrace>_\<rbrace>u")
 where
   "\<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>u \<equiv> \<forall>s f. P (s,f) \<longrightarrow> (let (r',s',f') = m s in Q r' (s',f \<and> \<not>f'))"
@@ -186,7 +186,7 @@ named_theorems sp_pre
 
 lemma bind_wp[wp']:
   "(\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B\<rbrace> \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>"
-  unfolding valid_def Let_def bind_def by (fastforce split: prod.splits)  
+  unfolding valid_def Let_def bind_def by (fastforce split: prod.splits)
 
 lemma hoare_seq_ext[sp]:
   "\<lbrace>A\<rbrace> f \<lbrace>B \<rbrace> \<Longrightarrow> (\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>) \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>"
@@ -210,10 +210,10 @@ lemmas hoare_strengthen_post = hoare_post
 
 lemma get_wp[wp']: "\<lbrace>\<lambda>s. P s s\<rbrace> get \<lbrace>P\<rbrace>"
   by (clarsimp simp: get_def valid_def)
-    
+
 lemma put_wp[wp']: "\<lbrace>\<lambda>s'. P () s\<rbrace> put s \<lbrace>P\<rbrace>"
   by (clarsimp simp: put_def valid_def)
-    
+
 lemma fail_wp[wp']: "\<lbrace>\<lambda>s. True\<rbrace> fail \<lbrace>P\<rbrace>"
   by (simp add: fail_def valid_def)
 
@@ -304,7 +304,7 @@ section "Unified Correctness Rules"
 lemma hoare_seq_extU[sp]:
   "\<lbrace>A\<rbrace> f \<lbrace>B \<rbrace>u \<Longrightarrow> (\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>u)  \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>u"
   unfolding validU_def Let_def bind_def by fastforce
-   
+
 lemma hoare_chainU:
   "\<lbrakk> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>u;
     \<And>s. R s \<Longrightarrow> P s;
@@ -330,10 +330,10 @@ lemma bind_wpU[wp']:
 
 lemma get_wpU[wp']: "\<lbrace>\<lambda>s. P (fst s) s \<rbrace> get \<lbrace> P \<rbrace>u"
   by (clarsimp simp: get_def validU_def)
-    
+
 lemma put_wpU[wp']: "\<lbrace>\<lambda>s'. P () (s, snd s') \<rbrace> put s \<lbrace> P \<rbrace>u"
   by (clarsimp simp: put_def validU_def)
-    
+
 lemma fail_wpU[wp']: "\<lbrace>\<lambda>s. P () (fst s, False) \<rbrace> fail \<lbrace> P \<rbrace>u"
   by (simp add: fail_def validU_def)
 
