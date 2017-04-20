@@ -91,16 +91,17 @@ lemma new_ptr_sp[sp]: "\<lbrace>R\<rbrace> new_ptr \<lbrace>\<lambda>rv. rv \<ma
   apply (clarsimp simp: sep_conj_def)
   apply (rule_tac x="[SOME p. s p = None \<mapsto> 0]" in exI)
   apply (rule_tac x=s in exI)
-  by (auto intro!: ext simp: maps_to_ex_def maps_to_def plus_fun_def sep_disj_fun_def)
+  by (auto simp: maps_to_ex_def maps_to_def plus_fun_def sep_disj_fun_def)
 
 lemma delete_ptr_sp[sp]: "\<lbrace>p \<mapsto> - \<leadsto>* R\<rbrace> delete_ptr p \<lbrace>\<lambda>_. R\<rbrace>"
   apply (clarsimp simp: delete_ptr_def, Det_Monad.wp)
   apply (intro allI impI)
   apply (clarsimp simp: sep_conj_def sep_coimpl_def pred_neg_def)
-  apply (erule_tac x="[p \<mapsto> y] :: heap" in allE)
+  apply (rename_tac v)
+  apply (erule_tac x="[p \<mapsto> v] :: heap" in allE)
   apply (drule mp)
    apply (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
-  apply (erule_tac x=" (\<lambda>a. if a = p then None else s a)" in allE)
+  apply (erule_tac x="(\<lambda>ptr. if ptr = p then None else s ptr)" in allE)
   apply (drule mp)
    apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
   apply (drule mp)
@@ -112,16 +113,17 @@ lemma set_ptr_sp[sp]: "\<lbrace>p \<mapsto> - \<leadsto>* R\<rbrace> set_ptr p v
   apply (clarsimp simp: set_ptr_def, Det_Monad.wp)
   apply (intro allI impI)
   apply (clarsimp simp: sep_conj_def sep_coimpl_def pred_neg_def)
-  apply (erule_tac x="[p \<mapsto> y] :: heap" in allE)
+  apply (rename_tac v')
+  apply (erule_tac x="[p \<mapsto> v'] :: heap" in allE)
   apply (drule mp)
    apply (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
-  apply (erule_tac x=" (\<lambda>a. if a = p then None else s a)" in allE)
+  apply (erule_tac x=" (\<lambda>ptr. if ptr = p then None else s ptr)" in allE)
   apply (drule mp)
    apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
   apply (drule mp)
    apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
   apply (rule_tac x="[p \<mapsto> v] :: heap" in exI)
-  apply (rule_tac x=" (\<lambda>a. if a = p then None else s a)" in exI)
+  apply (rule_tac x=" (\<lambda>ptr. if ptr = p then None else s ptr)" in exI)
   apply (clarsimp, intro conjI)
     apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
    apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
@@ -159,14 +161,15 @@ lemma get_ptr_sp[sp]: "\<lbrace>R\<rbrace> get_ptr p \<lbrace>\<lambda>rv. p \<m
   apply (clarsimp simp: get_ptr_def, Det_Monad.wp)
   apply (intro allI impI)
   apply (clarsimp simp: sep_conj_def)
-  apply (rule_tac x="[p \<mapsto> y] :: heap" in exI)
-  apply (rule_tac x=" (\<lambda>a. if a = p then None else s a)" in exI)
+  apply (rename_tac v)
+  apply (rule_tac x="[p \<mapsto> v] :: heap" in exI)
+  apply (rule_tac x=" (\<lambda>ptr. if ptr = p then None else s ptr)" in exI)
   apply (intro conjI)
      apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
     apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
    apply (clarsimp simp: maps_to_ex_def maps_to_def)
   apply (clarsimp simp: sep_coimpl_def sep_conj_def pred_neg_def sep_impl_def septraction_def)
-  apply (rule_tac x="[p \<mapsto> y] :: heap" in exI)
+  apply (rule_tac x="[p \<mapsto> v] :: heap" in exI)
   apply (clarsimp simp: maps_to_ex_def maps_to_def, rule conjI)
    apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def split: option.splits)
   apply (erule back_subst[where P=R])
@@ -177,17 +180,18 @@ lemma get_ptr_sp': "\<lbrace>\<lambda>s. R (the (s p)) s\<rbrace> get_ptr p \<lb
   apply (clarsimp simp: get_ptr_def, Det_Monad.wp)
   apply (intro allI impI)
   apply (clarsimp simp: sep_conj_def)
-  apply (rule_tac x="[p \<mapsto> y] :: heap" in exI)
-  apply (rule_tac x=" (\<lambda>a. if a = p then None else s a)" in exI)
+  apply (rename_tac v)
+  apply (rule_tac x="[p \<mapsto> v] :: heap" in exI)
+  apply (rule_tac x=" (\<lambda>ptr. if ptr = p then None else s ptr)" in exI)
   apply (intro conjI)
      apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
     apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
    apply (clarsimp simp: maps_to_ex_def maps_to_def)
   apply (clarsimp simp: sep_coimpl_def sep_conj_def pred_neg_def sep_impl_def septraction_def)
-  apply (rule_tac x="[p \<mapsto> y] :: heap" in exI)
+  apply (rule_tac x="[p \<mapsto> v] :: heap" in exI)
   apply (clarsimp simp: maps_to_ex_def maps_to_def, rule conjI)
    apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def split: option.splits)
-  apply (erule_tac P="R y" in back_subst)
+  apply (erule_tac P="R v" in back_subst)
   apply (rule ext, clarsimp simp: plus_fun_def plus_option_def split: option.splits)
   done
 
@@ -234,6 +238,7 @@ lemma septract_maps_to:"(p \<mapsto> v -* (p \<mapsto> v' \<and>* R)) s \<Longri
   apply (rule conjI)
    apply (erule back_subst[where P=R])
    apply (rule ext)
+   apply (rename_tac x)
    apply (drule_tac x=x in fun_cong)
    apply (clarsimp simp: plus_fun_def plus_option_def sep_disj_fun_def sep_disj_option_def)
    apply (erule_tac x=x in allE)
@@ -482,6 +487,9 @@ definition
   "reverse_inv xs list' rev' \<equiv>
      EXS ys zs. (list list' ys \<and>* list rev' zs) and (\<lambda>s. rev xs = rev ys @ zs)"
 
+method guess_spec = (rule exI)+, (intro conjI; (fastforce)?)
+
+
 lemma list_rev_valid_wp: "\<lbrace>list p ps\<rbrace> list_rev p \<lbrace>\<lambda>rv. list rv (rev ps)\<rbrace>"
   apply (clarsimp simp: list_rev_def)
   apply (subst whileLoop_add_inv [where
@@ -489,17 +497,12 @@ lemma list_rev_valid_wp: "\<lbrace>list p ps\<rbrace> list_rev p \<lbrace>\<lamb
                                                 (\<lambda>s. rev ps = rev ys @ zs)"])
   apply (Det_Monad.wp; clarsimp)+
   apply (case_tac x; clarsimp simp: sep_conj_exists)
-  apply (rule_tac exI)
+  apply (rule exI)
   apply (sep_cancel add: maps_to_maps_to_ex)+
-  apply (rule_tac x=lista in exI)
-  apply (rule_tac x="a # xa" in exI)
-  apply (intro conjI)
-   apply (clarsimp)
-   apply (sep_cancel)
-   apply (rule_tac x=ba in exI)
-   apply (sep_cancel)
-  apply (clarsimp)
-  done
+  apply (guess_spec)
+  apply (clarsimp simp: sep_conj_exists)
+  apply (rule exI, sep_solve)
+done
 
 
 lemma septract_extra_pure1[simp]: "(P -* (\<lambda>s. Q s \<and> q)) = ((P -* Q) and (\<lambda>s. q))"

@@ -92,12 +92,13 @@ lemma delete_pointer_empty: "(p \<mapsto>u v -& p \<mapsto>u v) s \<Longrightarr
 lemma sep_con_commute:
   "sep_con P Q s \<Longrightarrow> sep_con Q P s"
   apply (clarsimp simp: sep_con_def)
-  apply (rule_tac x="aa" in exI)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-   apply (clarsimp)
+  apply (rename_tac x y a b)
   apply (rule_tac x="a" in exI)
   apply (rule_tac x="b" in exI)
+  apply (intro conjI)
+   apply (clarsimp)
+  apply (rule_tac x="x" in exI)
+  apply (rule_tac x="y" in exI)
   apply (intro conjI)
    apply (clarsimp, intro conjI impI)
   using sep_add_commute apply fastforce
@@ -117,7 +118,8 @@ where
 lemma sep_mp:
   "sep_con P (sep_imp P R) s \<Longrightarrow> R s"
   apply (clarsimp simp: sep_con_def sep_imp_def pred_neg_def sept_def )
-  apply (erule_tac x=a in allE, erule_tac x=b in allE, simp)
+  apply (rename_tac x y a b)
+  apply (erule_tac x=x in allE, erule_tac x=y in allE, simp)
   apply (erule_tac x="fst s" in allE, erule_tac x="snd s" in allE, simp)
   apply (elim disjE; clarsimp?)
   apply (erule notE)
@@ -128,11 +130,13 @@ lemma sep_curry:
   "R s \<Longrightarrow> sep_imp P (sep_con P R) s"
   apply (clarsimp simp: sep_con_def sep_imp_def pred_neg_def sept_def)
   apply (intro conjI; clarsimp)
-   apply (erule_tac x=a in allE, erule_tac x=b in allE, simp)
+   apply (rename_tac x y a b)
+   apply (erule_tac x=x in allE, erule_tac x=y in allE, simp)
    apply (erule_tac x="fst s" in allE, erule_tac x="snd s" in allE, simp)
    apply (clarsimp simp: sep_add_commute sep_disj_commute)+
    apply (metis (mono_tags, lifting) prod.collapse sep_disj_commuteI)
-  apply (rule_tac x=a in exI, rule_tac x=b in exI, clarsimp)
+  apply (rename_tac x y a b)
+  apply (rule_tac x=x in exI, rule_tac x=y in exI, clarsimp)
   apply (rule_tac x="fst s" in exI, rule_tac x="snd s" in exI, simp)
   apply (metis (mono_tags, lifting) prod.collapse sep_disj_commuteI)
   done
@@ -167,26 +171,29 @@ lemma delete_ptr_sp:
   apply (rule hoare_chainU[OF state_assert_wpU, rotated])
    apply (assumption)
   apply (clarsimp)
-  apply (case_tac "a p = 0"; clarsimp simp: zero_option_def sept_def)
+  apply (rename_tac h f)
+  apply (case_tac "h p = 0"; clarsimp simp: zero_option_def sept_def)
    apply (rule_tac x=" [p \<mapsto> undefined]" in exI)
    apply (rule_tac x=" True" in exI)
    apply (intro conjI, fastforce)
-   apply (rule_tac x=a in exI, rule_tac x=b in exI)
+   apply (rule_tac x=h in exI, rule_tac x=f in exI)
    apply (clarsimp)
    apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def sep_disj_option_def sep_disj_bool_def)
-  apply (case_tac "b"; clarsimp)
-   apply (rule_tac x="[p \<mapsto> y]" in exI)
+  apply (case_tac "f"; clarsimp)
+   apply (rename_tac v)
+   apply (rule_tac x="[p \<mapsto> v]" in exI)
    apply (rule_tac x="True" in exI)
    apply (intro conjI, fastforce)
    apply (clarsimp)
-   apply (rule_tac x=a in exI, rule_tac x=True in exI)
+   apply (rule_tac x=h in exI, rule_tac x=True in exI)
    apply (clarsimp, intro conjI)
     apply (clarsimp simp: plus_prod_def, intro conjI)
      apply (rule ext)
      apply (clarsimp simp: plus_fun_def plus_option_def)
     apply (clarsimp simp: plus_bool_def)
    apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def sep_disj_option_def sep_disj_bool_def)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
+  apply (rename_tac v)
+  apply (rule_tac x="[p \<mapsto> v]" in exI)
   apply (rule_tac x="True" in exI)
   apply (intro conjI, fastforce)
   by blast
@@ -211,13 +218,14 @@ lemma get_ptr_sp:
   apply (rule hoare_chainU[OF gets_wpU, rotated])
    apply (assumption)
   apply (clarsimp simp: gets_def validU_def)
-  apply (case_tac "(\<exists>y. a p = Some y)"; clarsimp simp: the_f_def  zero_option_def)
+  apply (rename_tac h f)
+  apply (case_tac "(\<exists>y. h p = Some y)"; clarsimp simp: the_f_def  zero_option_def)
    apply (clarsimp simp: sep_con_def)
-   apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else  a ptr)" in exI)
-   apply (rule_tac x="b" in exI)
+   apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else  h ptr)" in exI)
+   apply (rule_tac x="f" in exI)
    apply (clarsimp, intro conjI impI)
       apply (clarsimp simp: sept_def)
-      apply (rule_tac x=a in exI, rule_tac x=b in exI, clarsimp, intro conjI)
+      apply (rule_tac x=h in exI, rule_tac x=f in exI, clarsimp, intro conjI)
        apply (clarsimp simp: plus_prod_def plus_bool_def)
        apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
       apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def sep_disj_option_def sep_disj_bool_def)
@@ -227,11 +235,11 @@ lemma get_ptr_sp:
    apply (clarsimp simp: sept_def)
    apply (blast)
   apply (clarsimp simp: sep_con_def)
-  apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else  a ptr)" in exI, rule_tac x= False in exI)
+  apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else h ptr)" in exI, rule_tac x= False in exI)
   apply (clarsimp)
   apply (clarsimp simp: sept_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x=b in exI)
+  apply (rule_tac x=h in exI)
+  apply (rule_tac x=f in exI)
   apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def sep_disj_option_def sep_disj_bool_def)
   done
 
@@ -249,14 +257,16 @@ lemma set_ptr_sp:
   apply (rule hoare_chainU[OF gets_wpU, rotated])
    apply (assumption)
   apply (clarsimp simp: gets_def validU_def)
-  apply (case_tac "(\<exists>y. a p = Some y)"; clarsimp simp: the_f_def maps_to_ex_def zero_option_def)
+  apply (rename_tac h f)
+  apply (case_tac "(\<exists>y. h p = Some y)"; clarsimp simp: the_f_def maps_to_ex_def zero_option_def)
    apply (clarsimp simp: sep_con_def)
-   apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else  a ptr)" in exI)
-   apply (rule_tac x="b" in exI)
+   apply (rule_tac x="(\<lambda>ptr. if ptr = p then None else  h ptr)" in exI)
+   apply (rule_tac x="f" in exI)
    apply (clarsimp, intro conjI impI)
       apply (clarsimp simp: sept_def)
-      apply (rule_tac x="[p \<mapsto> y]" in exI, intro conjI, fastforce)
-      apply (rule_tac x=b in exI, clarsimp)
+      apply (rename_tac v)
+      apply (rule_tac x="[p \<mapsto> v]" in exI, intro conjI, fastforce)
+      apply (rule_tac x=f in exI, clarsimp)
       apply (rule exI, rule exI, intro conjI, fastforce)
        apply (clarsimp simp: plus_prod_def plus_bool_def)
        apply (rule ext, clarsimp simp: plus_fun_def plus_option_def)
@@ -267,7 +277,7 @@ lemma set_ptr_sp:
    apply (clarsimp simp: sept_def)
    apply (blast)
   apply (clarsimp simp: sep_con_def)
-  apply (rule_tac x="(\<lambda>ptr. if ptr = p then Some v else  a ptr)" in exI, rule_tac x= False in exI)
+  apply (rule_tac x="(\<lambda>ptr. if ptr = p then Some v else h ptr)" in exI, rule_tac x= False in exI)
   apply (clarsimp)
   apply (clarsimp simp: sept_def)
   apply (rule_tac x="[p \<mapsto> undefined]" in exI)
@@ -281,14 +291,15 @@ lemma set_ptr_sp:
 
 definition "move_ptr p p' = get_ptr p \<bind> set_ptr p'"
 
+method guess_spec = (rule exI)+, (intro conjI; (fastforce)?)
+
 
 lemma sep_con_impl2:
   "(p \<and>& q) s \<Longrightarrow> (\<And>s. q s \<Longrightarrow> q' s) \<Longrightarrow> (p \<and>& q') s"
   apply (clarsimp simp: sep_con_def)
-  apply (rule_tac x=a in exI, rule_tac x=b in exI)
-  apply (clarsimp)
-  apply (rule_tac x=aa in exI, rule_tac x=ba in exI, clarsimp)
-  by auto
+  apply (rule exI, rule exI, rule conjI, assumption)
+  by (metis (full_types) snd_conv)
+ 
 
 lemma sept_impl2:
   "(p -& q) s \<Longrightarrow> (\<And>s. q s \<Longrightarrow> q' s) \<Longrightarrow> (p -& q') s"
@@ -312,18 +323,21 @@ lemma sept_success:
   apply (fastforce)
   done
 
+lemma sep_add_cancel_maps_toD: "[p \<mapsto> v] + x = [p \<mapsto> v'] + y \<Longrightarrow> [p \<mapsto> v] ## x \<Longrightarrow>
+    [p \<mapsto> v'] ## y \<Longrightarrow> v = v'"
+  apply (clarsimp simp: plus_fun_def plus_option_def sep_disj_fun_def 
+         sep_disj_prod_def sep_disj_option_def plus_bool_def sep_disj_bool_def split: if_splits)
+  by (drule fun_cong[where x=p], clarsimp)
+
 
 lemma sept_success_ex:
   "(p \<mapsto>u - -& (p \<mapsto>u - \<and>* (R and nf))) s \<Longrightarrow> (R and nf) s"
   apply (clarsimp simp: sept_def sep_conj_def maps_to_ex_def split: if_splits)
   apply (erule disjE, clarsimp simp: pred_conj_def)
-   apply (subgoal_tac "y = ya", clarsimp)
-    apply (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD sep_add_commute sep_disj_commuteI)
+  apply (clarsimp simp: plus_prod_def, frule sep_add_cancel_maps_toD; clarsimp simp: sep_disj_prod_def)
+  apply (smt Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD prod.collapse sep_add_commute sep_disj_commuteI)
    apply (clarsimp simp: plus_prod_def)
-   apply (drule fun_cong[where x=p], clarsimp simp: plus_fun_def plus_option_def split: option.splits)
    apply (clarsimp simp: plus_fun_def plus_option_def sep_disj_fun_def sep_disj_prod_def sep_disj_option_def plus_bool_def sep_disj_bool_def split: if_splits)
-   apply (fastforce)
-  apply (clarsimp simp: plus_fun_def plus_prod_def plus_option_def sep_disj_fun_def sep_disj_prod_def sep_disj_option_def plus_bool_def sep_disj_bool_def split: if_splits)
   apply (fastforce simp: pred_conj_def)
   done
 

@@ -194,13 +194,9 @@ instance
     apply (safe; fastforce)
    apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def, safe)
     apply (rule ext)
-    apply (erule_tac x=xa in allE)
-    apply (drule_tac x=xa in fun_cong)
-    apply (clarsimp)
+    apply (meson sep_disj_positive)
    apply (rule ext)
-   apply (erule_tac x=xa in allE)
-   apply (drule_tac x=xa in fun_cong)
-   apply(clarsimp)
+       apply (meson sep_disj_positive)
   apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def)
   apply (rule ext)
   by (meson sep_add_cancel)
@@ -209,11 +205,12 @@ end
 
 lemma sep_substate_antisym: "x \<preceq> y \<Longrightarrow> y \<preceq> x \<Longrightarrow> x = (y :: 'a ::cancellative_sep_algebra)"
   apply (clarsimp simp: sep_substate_def)
-  apply (subgoal_tac "z = 0")
+  apply (rename_tac h' h)
+  apply (subgoal_tac "h' = 0")
    apply (clarsimp)
   apply (drule_tac trans[where s=x and t="x+0"])
    apply (clarsimp)
-  apply (subgoal_tac "(x + z + za = x + 0) \<longrightarrow> ((0 + x) = (z + za) + x)")
+  apply (subgoal_tac "(x + h' + h = x + 0) \<longrightarrow> ((0 + x) = (h' + h) + x)")
    apply (drule mp, clarsimp)
    apply (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD disjoint_zero_sym sep_disj_add_eq sep_disj_commuteI sep_disj_positive)
   by (metis sep_add_assoc sep_add_commute sep_add_zero sep_add_zero_sym sep_disj_commuteI)
@@ -372,6 +369,7 @@ lemma ex_pull: "\<exists>h s. P h s \<and> Q h \<Longrightarrow> \<exists>h. Q h
 
 lemma sep_mp_snake_mp: "(P \<and>* (P \<longrightarrow>* (P \<leadsto>* Q))) s \<Longrightarrow> (P \<and>* Q) s"
   apply (clarsimp simp: sep_conj_def)
+  apply (rename_tac x y)
   apply (rule_tac x=x in exI)
   apply (rule_tac x=y in exI)
   apply (clarsimp)
@@ -441,6 +439,7 @@ lemma cointuitionistic_def':  "cointuitionistic P = (\<forall>s R. P s \<longrig
    apply (clarsimp)
    apply (clarsimp simp: sep_coimpl_def)
    apply (clarsimp simp: sep_conj_def pred_neg_def cointuitionistic_def)
+   apply (rename_tac R x y)
    apply (erule_tac x="x + y" in allE)
    apply (erule_tac x=y in allE)
    apply (clarsimp)
@@ -469,6 +468,7 @@ lemma sep_wand_dne:"((P \<longrightarrow>* sep_false) \<longrightarrow>* sep_fal
 
 lemma sep_snake_dne: "(sep_true \<leadsto>* P) s \<Longrightarrow> ((P \<leadsto>* sep_false) \<leadsto>* sep_false) s"
   apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def sep_conj_def sep_coimpl_def)
+  apply (rename_tac x y)
   apply (erule_tac x=y in allE)
   apply (erule_tac x=x in allE)
   apply (rule_tac x=x in exI)
@@ -482,23 +482,17 @@ lemma strictly_exactI:
   apply (atomize)
   apply (clarsimp simp: strictly_exact_def)
   apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def sep_conj_def sep_coimpl_def strictly_exact_def)
+  apply (rename_tac h h')
   apply (erule_tac x="\<lambda>s. s = h" in allE)
-  apply (erule_tac x=h' in allE)
-  apply (clarsimp)
-  apply (drule mp)
-   apply (rule_tac x=0 in exI)
-   apply (clarsimp)
-  apply (clarsimp)
-  done
+  by (metis disjoint_zero_sym sep_add_commute sep_add_zero sep_disj_zero)
+ 
 
 lemma strictly_exact_septractD:
   "strictly_exact R \<Longrightarrow> ((P -* R) -* R) s \<Longrightarrow> P (s :: 'a :: cancellative_sep_algebra)"
   apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def sep_conj_def sep_coimpl_def
                         strictly_exact_def)
-  apply (erule_tac x="s+ h'" in allE)
-  apply (erule_tac x="h' + h'a" in allE)
-  apply (clarsimp)
-  using sep_add_cancelD sep_add_commute sep_disj_commuteI by fastforce
+  by (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancel sep_add_commute sep_disj_commuteI)
+
 
 lemma strictly_exact_def':
   "(\<forall>P s. ((P -* R) -* R) s \<longrightarrow> P (s :: 'a :: cancellative_sep_algebra)) = strictly_exact R"
@@ -508,7 +502,8 @@ lemma copreciseI: "(\<forall>(s ) R. (P -* R) s \<longrightarrow> (P \<longright
   apply (clarsimp simp: coprecise_def)
   apply (clarsimp simp: sep_substate_def)
   apply (erule_tac x="0" in allE)
-  apply (erule_tac x="\<lambda>h. h = s + z" in allE)
+  apply (rename_tac s h h')
+  apply (erule_tac x="\<lambda>s'. s' = s + h" in allE)
   apply (drule mp)
    apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def)
   apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def)
@@ -527,6 +522,7 @@ lemma "\<forall>s P. (P -* R) s \<longrightarrow> (P \<longrightarrow>* R) s \<L
 lemma strictly_exactI':"\<forall>s R. (P -* R) s \<longrightarrow> (P \<longrightarrow>* R) s \<Longrightarrow> strictly_exact P"
   apply (clarsimp simp: strictly_exact_def)
   apply (erule_tac x="0" in allE)
+  apply (rename_tac h h')
   apply (erule_tac x="\<lambda>h. h = h'" in allE)
   apply (drule mp)
    apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def)
@@ -539,7 +535,8 @@ lemma strictly_exact_def'': "(\<forall>s R. (P -* R) s \<longrightarrow> (P \<lo
 lemma conj_coimpl_precise: "(\<forall>s R. (P \<and>* R) s \<longrightarrow> (P \<leadsto>* R) s) \<Longrightarrow> precise P"
   apply (clarsimp simp: precise_def)
   apply (clarsimp simp: sep_substate_def)
-  apply (erule_tac x="hp + z" in allE)
+  apply (rename_tac h h' z z')
+  apply (erule_tac x="h + z" in allE)
   apply (erule_tac x="\<lambda>s. s= z" in allE)
   apply (drule mp)
    apply (clarsimp simp: sep_conj_def)
@@ -550,15 +547,7 @@ lemma conj_coimpl_precise: "(\<forall>s R. (P \<and>* R) s \<longrightarrow> (P 
 lemma precise_conj_coimpl: "precise P \<Longrightarrow> (\<forall>s R. (P \<and>* R) s \<longrightarrow> (P \<leadsto>* R) s)"
   apply (clarsimp simp: precise_def)
   apply (clarsimp simp: sep_conj_def sep_coimpl_def pred_neg_def)
-  apply (erule_tac x="x + y" in allE)
-  apply (erule_tac x=x in allE)
-  apply (erule_tac x=xa in allE)
-  apply (clarsimp)
-  apply (drule mp)
-   apply (safe)
-    using sep_substate_disj_add apply fastforce
-   apply (simp add: sep_substate_disj_add)
-  by (metis sep_add_cancelD sep_add_commute sep_disj_commuteI)
+  by (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD sep_add_commute sep_disj_commuteI sep_substate_disj_add)
 
 
 lemma septract_cancel_eq_precise: "(\<forall>s. ((P -* (P \<and>* R)) s \<longrightarrow> R s)) = (\<forall>s. (P \<and>* R) s \<longrightarrow> (P \<leadsto>* R) s)"
@@ -566,9 +555,10 @@ lemma septract_cancel_eq_precise: "(\<forall>s. ((P -* (P \<and>* R)) s \<longri
    apply (clarsimp)
    apply (clarsimp simp: sep_conj_def sep_impl_def septraction_def pred_neg_def sep_coimpl_def)
    apply (rule ccontr)
-   apply (erule_tac x=ya in allE)
+   apply (rename_tac x y h h')
+   apply (erule_tac x=h' in allE)
    apply (clarsimp)
-   apply (erule_tac x=xa in allE)
+   apply (erule_tac x=h in allE)
    apply (clarsimp simp: sep_disj_commute)
    apply (erule_tac x=x in allE)
    apply (clarsimp)
@@ -582,13 +572,8 @@ lemma septract_cancel_eq_precise: "(\<forall>s. ((P -* (P \<and>* R)) s \<longri
 lemma sep_coimpl_cancel:"(P \<leadsto>* Q) s \<Longrightarrow> ((P \<and>* Q) s \<Longrightarrow> (P \<leadsto>* Q') s) \<Longrightarrow> (P \<leadsto>* Q') s"
   apply (clarsimp simp: sep_coimpl_def pred_neg_def)
   apply (clarsimp simp: sep_conj_def)
-  apply (erule_tac x=x in allE)
-  apply (clarsimp simp: pred_neg_def)
-  apply (erule_tac x=y in allE)
-  apply (clarsimp)
-  apply (atomize)
-  apply (clarsimp)
-  done
+  by blast
+ 
 
 lemma sep_cases: "R s \<Longrightarrow> (P \<and>* (P -* R)) s \<or> (P \<leadsto>* (sep_false)) s"
   apply (safe)
@@ -639,10 +624,7 @@ lemma min_predD: "(R \<leadsto>* \<box>) s \<Longrightarrow> (R \<and>* sep_true
 
 lemma septract_sep_wand: "(P -* R) s \<Longrightarrow> (P \<longrightarrow>* Q) s \<Longrightarrow> (P -* (Q and R)) s"
   apply (clarsimp simp: sep_impl_def septraction_def pred_neg_def)
-  apply (erule_tac x="h'" in allE)
-  apply (clarsimp simp: pred_conj_def)
-  apply (fastforce)
-  done
+  by (fastforce simp: pred_conj_def)
 
 lemma "(P -* (P \<and>* R)) s \<Longrightarrow> (P \<longrightarrow>* Q) s \<Longrightarrow> (\<And>s. (Q and (P \<and>* R)) s \<Longrightarrow> (P \<leadsto>* R) s) \<Longrightarrow> R s"
   using sep_septraction_snake septract_sep_wand by blast
@@ -682,11 +664,7 @@ lemma sep_neg_impl: "(not (R \<longrightarrow>* Q)) = (R -* (not Q)) "
 
 lemma "P s \<Longrightarrow> (R -* Q) s \<Longrightarrow> ((R and (P -* Q)) -* Q) s"
   apply (clarsimp simp: septraction_def sep_impl_def pred_neg_def pred_conj_def)
-  apply (rule_tac x=h' in exI)
-  apply (clarsimp)
-  apply (rule_tac x=s in exI)
-  apply (fastforce simp: sep_add_commute sep_disj_commute)
-  done
+  by (fastforce simp: sep_add_commute sep_disj_commute)
 
 lemma sep_coimpl_notempty: "(Q \<leadsto>* (not \<box>)) s \<Longrightarrow> (not Q) s"
   apply (clarsimp simp: sep_coimpl_def pred_neg_def)
