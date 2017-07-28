@@ -40,11 +40,12 @@ instance
   by (intro_classes) (auto simp: zero_bool_def plus_bool_def sep_disj_bool_def)
 end
 
+abbreviation "NULL \<equiv> undefined"
 
 definition
   maps_to:: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) machine \<Rightarrow> bool" ("_ \<mapsto>u _" [56,51] 56)
 where
-  "x \<mapsto>u y \<equiv> \<lambda>h. heap h = [x \<mapsto> y] \<and> nf h "
+  "x \<mapsto>u y \<equiv> \<lambda>h. heap h = [x \<mapsto> y] \<and> nf h \<and> x \<noteq> NULL  "
 
 definition
   maps_to_ex :: "'a \<Rightarrow>  ('a, 'b) machine \<Rightarrow> bool" ("_ \<mapsto>u -" [56] 56)
@@ -56,8 +57,9 @@ lemma maps_to_maps_to_ex [elim!]:
   "(p \<mapsto>u v) s \<Longrightarrow> (p \<mapsto>u -) s"
   by (auto simp: maps_to_ex_def)
 
-lemma maps_to_ex_simp[simp]: " (p \<mapsto>u -) ([p \<mapsto> v], True)"
+lemma maps_to_ex_simp[simp]: "p \<noteq> NULL \<Longrightarrow> (p \<mapsto>u -) ([p \<mapsto> v], True)"
   by (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
+
 
 type_synonym ('a, 'b) machine_pred = "('a, 'b) machine \<Rightarrow> bool"
 

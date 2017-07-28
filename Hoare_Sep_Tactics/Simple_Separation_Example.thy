@@ -523,19 +523,27 @@ lemma whileLoop_sp_inv[sp]:
 lemma sep_conj_coimpl_mp:"(P \<and>* R) s \<Longrightarrow> (P \<leadsto>* Q) s \<Longrightarrow> (P \<and>* (Q and R)) s"
   by (drule (2) sep_coimpl_mp_gen, clarsimp simp: conj_commute)
 
+lemma trivial_spec: "P xa ya \<Longrightarrow> \<exists>x y. Q xa ya = Q x y \<and> P x y" 
+ by (fastforce)
+
+declare sep_conj_exists[simp]
+
+lemma list_nonemptyI:"(list b as \<and>* a \<mapsto> b) s \<Longrightarrow> 0 < a 
+       \<Longrightarrow> list a (a # as) s"
+   apply (clarsimp, rule exI, sep_cancel)
+done
+
+method septract_solve = (septract_cancel)+
+
 lemma list_rev_valid_sp:
   "\<lbrace>list p ps \<and>* R\<rbrace> list_rev p \<lbrace>\<lambda>rv. list rv (rev ps) \<and>* R\<rbrace>"
   apply (clarsimp simp: list_rev_def)
   apply (subst whileLoop_add_inv [where I="\<lambda>(list', rev'). reverse_inv ps list' rev' \<and>* R",
                                   unfolded reverse_inv_def])
-  apply (sp; clarsimp simp: sep_conj_exists)
+  apply (sp; clarsimp)
    apply (rename_tac list' rev')
-   apply (case_tac list'; clarsimp simp: sep_conj_exists sep_conj_assoc)
-   apply (septract_cancel)+
-   apply (rule exI, rule exI, intro conjI, fastforce)
-   apply (clarsimp simp: sep_conj_exists)
-   apply (rule_tac exI)
-   apply (sep_solve)
+   apply (case_tac list'; clarsimp simp: sep_conj_assoc)
+   apply (septract_solve, rule trivial_spec, clarsimp, rule exI, sep_solve)
   apply (rule hoare_post, sp, clarsimp)
   done
 
