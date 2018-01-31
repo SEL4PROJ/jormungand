@@ -1,0 +1,98 @@
+Checklist for official releases
+===============================
+
+- check latest updates of polyml, jdk, scala, jedit;
+
+- check Admin/components;
+
+- test 'display_drafts' command;
+
+- test "#!/usr/bin/env isabelle_scala_script";
+
+- check sources:
+    isabelle check_sources '~~' '$AFP_BASE'
+
+- check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
+
+- check versions in src/Tools/jEdit/Isabelle.props;
+
+- check funny base directory, e.g. "Test 中国";
+
+- check scalable fonts, e.g. src/Doc/Prog_Prove (NOTE: T1 encoding
+  requires cm-super fonts, which are usually available on MacTeX or
+  Cygwin, but not on Ubuntu/Debian);
+
+- diff NEWS wrt. last official release, which is read-only;
+
+- update https://bitbucket.org/isabelle_project/isabelle-website
+
+- check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
+
+- check Logics:
+    ROOTS
+    lib/html/library_index_content.template
+
+- HTML library: check HTML header;
+
+- HTML library: check theory dependencies (PDF);
+
+- test Isabelle/jEdit:
+    . print buffer
+    . on single-core
+    . on airy device
+
+- test contrib components:
+    x86_64-linux without 32bit C/C++ libraries
+
+- check "Handler catches all exceptions"
+
+- Mac OS X: check app bundle with Retina display;
+
+- Mac OS X: check recent MacTeX;
+
+- Windows: check dpi scaling with high-definition display;
+
+- Windows: check recent MiKTeX;
+
+
+Repository fork
+===============
+
+- isabelle: finalize NEWS / CONTRIBUTORS -- proper headers for named release;
+
+- isabelle-release: hg tag;
+
+- isabelle: back to post-release mode -- after fork point;
+
+
+Packaging
+=========
+
+- Mac OS X: provide "gnutar" executable via shell PATH
+  (e.g. copy of /usr/bin/gnutar from Mountain Lion)
+
+- Linux: avoid some versions of Debian / Ubuntu (bitmap fonts for prog-prove);
+
+- fully-automated packaging (e.g. on lxbroy10 or macbroy2):
+
+  hg up -r DISTNAME && Admin/build_release -M macbroy30 -O -l -R DISTNAME /home/isabelle/dist
+
+
+Final release stage
+===================
+
+- various .hg/hgrc files:
+  default = http://bitbucket.org/isabelle_project/isabelle-release
+  default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
+
+- Admin/cronjob/self_update:
+  http://bitbucket.org/isabelle_project/isabelle-release
+
+- src/Pure/Admin/isabelle_cronjon.scala:
+  isabelle_repos_source = isabelle_release_source
+
+
+Post-release
+============
+
+- update /home/isabelle and /home/isabelle/html-data

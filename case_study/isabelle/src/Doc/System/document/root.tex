@@ -1,0 +1,48 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{supertabular}
+\usepackage{graphicx}
+\usepackage{iman,extra,isar}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
+
+\isabellestyle{literal}
+\def\isastylett{\footnotesize\tt}
+
+\title{\includegraphics[scale=0.5]{isabelle} \\[4ex] The Isabelle System Manual}
+
+\author{\emph{Makarius Wenzel}}
+
+\makeindex
+
+
+\begin{document}
+
+\maketitle 
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+\input{Environment.tex}
+\input{Sessions.tex}
+\input{Presentation.tex}
+\input{Scala.tex}
+\input{Misc.tex}
+
+\begingroup
+  \tocentry{\bibname}
+  \bibliographystyle{abbrv} \small\raggedright\frenchspacing
+  \bibliography{manual}
+\endgroup
+
+\tocentry{\indexname}
+\printindex
+
+\end{document}

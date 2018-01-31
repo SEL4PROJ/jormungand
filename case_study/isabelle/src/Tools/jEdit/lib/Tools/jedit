@@ -1,0 +1,372 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: Isabelle/jEdit interface wrapper
+
+
+## settings
+
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86_64-*)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS64"
+    ;;
+  *)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS32"
+    ;;
+esac
+
+
+## sources
+
+declare -a SOURCES=(
+  "src/active.scala"
+  "src/bibtex_jedit.scala"
+  "src/completion_popup.scala"
+  "src/context_menu.scala"
+  "src/debugger_dockable.scala"
+  "src/dockable.scala"
+  "src/document_model.scala"
+  "src/document_view.scala"
+  "src/documentation_dockable.scala"
+  "src/fold_handling.scala"
+  "src/font_info.scala"
+  "src/graphview_dockable.scala"
+  "src/info_dockable.scala"
+  "src/isabelle.scala"
+  "src/isabelle_encoding.scala"
+  "src/isabelle_options.scala"
+  "src/isabelle_sidekick.scala"
+  "src/jedit_editor.scala"
+  "src/jedit_lib.scala"
+  "src/jedit_options.scala"
+  "src/jedit_resources.scala"
+  "src/jedit_sessions.scala"
+  "src/keymap_merge.scala"
+  "src/monitor_dockable.scala"
+  "src/output_dockable.scala"
+  "src/pide_docking_framework.scala"
+  "src/plugin.scala"
+  "src/pretty_text_area.scala"
+  "src/pretty_tooltip.scala"
+  "src/process_indicator.scala"
+  "src/protocol_dockable.scala"
+  "src/query_dockable.scala"
+  "src/raw_output_dockable.scala"
+  "src/rendering.scala"
+  "src/rich_text_area.scala"
+  "src/scala_console.scala"
+  "src/session_build.scala"
+  "src/simplifier_trace_dockable.scala"
+  "src/simplifier_trace_window.scala"
+  "src/sledgehammer_dockable.scala"
+  "src/spell_checker.scala"
+  "src/state_dockable.scala"
+  "src/symbols_dockable.scala"
+  "src/syslog_dockable.scala"
+  "src/text_overview.scala"
+  "src/text_structure.scala"
+  "src/theories_dockable.scala"
+  "src/timing_dockable.scala"
+  "src/token_markup.scala"
+)
+
+declare -a RESOURCES=(
+  "src/actions.xml"
+  "src/dockables.xml"
+  "src/Isabelle.props"
+  "src/jEdit.props"
+  "src/services.xml"
+  "src/modes/isabelle-ml.xml"
+  "src/modes/isabelle-news.xml"
+  "src/modes/isabelle-options.xml"
+  "src/modes/isabelle-root.xml"
+  "src/modes/isabelle.xml"
+  "src/modes/sml.xml"
+)
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
+  echo
+  echo "  Options are:"
+  echo "    -D NAME=X    set JVM system property"
+  echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+  echo "    -b           build only"
+  echo "    -d DIR       include session directory"
+  echo "    -f           fresh build"
+  echo "    -j OPTION    add jEdit runtime option"
+  echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
+  echo "    -l NAME      logic session name"
+  echo "    -m MODE      add print mode for output"
+  echo "    -n           no build of session image on startup"
+  echo "    -p CMD       ML process command prefix (process policy)"
+  echo "    -s           system build mode for session image"
+  echo
+  echo "  Start jEdit with Isabelle plugin setup and open FILES"
+  echo "  (default \"$USER_HOME/Scratch.thy\" or \":\" for empty buffer)."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function failed()
+{
+  fail "Failed!"
+}
+
+
+## process command line
+
+# options
+
+BUILD_ONLY=false
+BUILD_JARS="jars"
+ML_PROCESS_POLICY=""
+JEDIT_SESSION_DIRS=""
+JEDIT_LOGIC=""
+JEDIT_PRINT_MODE=""
+JEDIT_BUILD_MODE="normal"
+
+function getoptions()
+{
+  OPTIND=1
+  while getopts "D:J:bd:fj:l:m:np:s" OPT
+  do
+    case "$OPT" in
+      D)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-D$OPTARG"
+        ;;
+      J)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
+        ;;
+      b)
+        BUILD_ONLY=true
+        ;;
+      d)
+        if [ -z "$JEDIT_SESSION_DIRS" ]; then
+          JEDIT_SESSION_DIRS="$OPTARG"
+        else
+          JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
+        fi
+        ;;
+      f)
+        BUILD_JARS="jars_fresh"
+        ;;
+      j)
+        ARGS["${#ARGS[@]}"]="$OPTARG"
+        ;;
+      l)
+        JEDIT_LOGIC="$OPTARG"
+        ;;
+      m)
+        if [ -z "$JEDIT_PRINT_MODE" ]; then
+          JEDIT_PRINT_MODE="$OPTARG"
+        else
+          JEDIT_PRINT_MODE="$JEDIT_PRINT_MODE,$OPTARG"
+        fi
+        ;;
+      n)
+        JEDIT_BUILD_MODE="none"
+        ;;
+      p)
+        ML_PROCESS_POLICY="$OPTARG"
+        ;;
+      s)
+        JEDIT_BUILD_MODE="system"
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+
+declare -a ARGS=()
+
+declare -a OPTIONS; eval "OPTIONS=($ISABELLE_JEDIT_OPTIONS)"
+getoptions "${OPTIONS[@]}"
+
+getoptions "$@"
+shift $(($OPTIND - 1))
+
+
+# args
+
+while [ "$#" -gt 0 ]; do
+  ARGS["${#ARGS[@]}"]="$(platform_path "$1")"
+  shift
+done
+
+
+## dependencies
+
+if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+  isabelle browser -b || exit $?
+  "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
+fi
+
+PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
+
+pushd "$JEDIT_HOME" >/dev/null || failed
+
+JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
+
+JEDIT_JARS=(
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Code2HTML.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/CommonControls.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/kappalayout.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/MacOSX.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Navigator.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
+)
+
+
+# target
+
+TARGET="dist/jars/Isabelle-jEdit.jar"
+
+declare -a UPDATED=()
+
+if [ "$BUILD_JARS" = jars_fresh ]; then
+  OUTDATED=true
+else
+  OUTDATED=false
+  if [ ! -e "$TARGET" ]; then
+    OUTDATED=true
+  else
+    if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+      declare -a DEPS=(
+        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
+        "${SOURCES[@]}" "${RESOURCES[@]}"
+      )
+    elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
+      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+    else
+      declare -a DEPS=()
+    fi
+    for DEP in "${DEPS[@]}"
+    do
+      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+      [ "$DEP" -nt "$TARGET" ] && {
+        OUTDATED=true
+        UPDATED["${#UPDATED[@]}"]="$DEP"
+      }
+    done
+  fi
+fi
+
+
+# build
+
+if [ "$OUTDATED" = true ]
+then
+  echo "### Building Isabelle/jEdit ..."
+
+  [ "${#UPDATED[@]}" -gt 0 ] && {
+    echo "Changed files:"
+    for FILE in "${UPDATED[@]}"
+    do
+      echo "  $FILE"
+    done
+  }
+
+  [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
+    fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
+
+  rm -rf dist || failed
+  mkdir -p dist dist/classes || failed
+
+  cp -p -R -f "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
+  cp -p -R -f "${RESOURCES[@]}" dist/classes/.
+  cp src/jEdit.props dist/properties/.
+  cp -p -R -f src/modes/. dist/modes/.
+
+  perl -i -e 'while (<>) {
+    if (m/FILE="ml.xml"/ or m/FILE_NAME_GLOB="...sml,ml."/) { }
+    elsif (m/NAME="javacc"/) {
+      print qq!<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="{*.thy,ROOT0.ML,ROOT.ML}"/>\n\n!;
+      print qq!<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>\n\n!;
+      print qq!<MODE NAME="isabelle-news" FILE="isabelle-news.xml"/>\n\n!;
+      print qq!<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>\n\n!;
+      print qq!<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n!;
+      print;
+    }
+    elsif (m/NAME="sqr"/) {
+      print qq!<MODE NAME="sml" FILE="sml.xml" FILE_NAME_GLOB="*.{sml,sig}"/>\n\n!;
+      print;
+    }
+    else { print; }
+  }' dist/modes/catalog
+
+  cd dist
+  isabelle_jdk jar xf jedit.jar
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
+    "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
+    "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
+  isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
+  rm -rf META-INF org
+  cd ..
+
+  cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
+  (
+    #FIXME workarounds for scalac 2.11.0
+    export CYGWIN="nodosfilewarning"
+    function stty() { :; }
+    export -f stty
+
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
+    do
+      classpath "$JAR"
+    done
+    export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
+    exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d dist/classes "${SOURCES[@]}"
+  ) || fail "Failed to compile sources"
+
+  cd dist/classes
+  isabelle_jdk jar cf "../jars/Isabelle-jEdit.jar" * || failed
+  cd ../..
+  rm -rf dist/classes
+
+  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.3.0manual-a4.pdf" dist/doc/jedit-manual.pdf
+  cp dist/doc/CHANGES.txt dist/doc/jedit-changes
+  cat > dist/doc/Contents <<EOF
+Original jEdit Documentation
+  jedit-manual    jEdit 5.3 User's Guide
+  jedit-changes   jEdit 5.3 Version History
+
+EOF
+
+fi
+
+popd >/dev/null
+
+
+## main
+
+if [ "$BUILD_ONLY" = false ]
+then
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
+  classpath "$JEDIT_HOME/dist/jedit.jar"
+  exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
+fi

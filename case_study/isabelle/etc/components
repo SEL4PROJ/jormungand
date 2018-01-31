@@ -1,0 +1,10 @@
+#hard-wired components
+src/Tools/jEdit
+src/Tools/Graphview
+src/HOL/Mirabelle
+src/HOL/Mutabelle
+src/HOL/Library/Sum_of_Squares
+src/HOL/SPARK
+src/HOL/Tools
+src/HOL/Tools/ATP
+src/HOL/TPTP

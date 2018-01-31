@@ -1,0 +1,55 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{isabelle,isabellesym}
+\usepackage{graphicx,iman,extra,ttbox,proof,latexsym,pdfsetup}
+
+%%%STILL NEEDS MODAL, LCF
+%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
+%%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
+%%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\cdx{\1}  
+%%% to deverbify:         \\verb|\([^|]*\)|     \\ttindex{\1}  
+%% run    ../sedindex logics    to prepare index file
+\title{\includegraphics[scale=0.5]{isabelle} \\[4ex] Isabelle's Logics}
+
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel%
+ \thanks{Markus Wenzel made numerous improvements.  Sara Kalvala
+    contributed Chap.\ts\ref{chap:sequents}.  Philippe de Groote
+   wrote the first version of the logic~LK.  Tobias Nipkow developed
+   LCF and~Cube.  Martin Coen developed~Modal with assistance
+   from Rajeev Gor\'e.  The research has been funded by the EPSRC
+   (grants GR/G53279, GR/H40570, GR/K57381, GR/K77051, GR/M75440) and by ESPRIT
+   (projects 3245: Logical Frameworks, and 6453: Types), and by the DFG
+  Schwerpunktprogramm \emph{Deduktion}.} }
+
+\newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
+  \hrule\bigskip}
+\newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
+
+\newcommand\bs{\char '134 }  % A backslash character for \tt font
+
+\makeindex
+
+\underscoreoff
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\maketitle 
+\pagenumbering{roman} \tableofcontents \clearfirst
+\input{preface}
+\input{syntax}
+\input{HOL}
+\input{LK}
+\input{Sequents}
+%%\input{Modal}
+\input{CTT}
+\bibliographystyle{plain}
+\bibliography{manual}
+\printindex
+\end{document}

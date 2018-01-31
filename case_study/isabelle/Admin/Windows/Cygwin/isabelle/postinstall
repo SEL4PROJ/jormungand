@@ -1,0 +1,15 @@
+#!/bin/bash
+
+export PATH=/bin
+
+bash /etc/postinstall/base-files-mketc.sh.done
+
+mkpasswd -l >/etc/passwd
+mkgroup -l >/etc/group
+
+find -type d -exec setfacl -m default:user::rwx,default:group::r-x,default:other:r-x '{}' +
+find -type d -exec chmod 755 '{}' +
+find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
+find -type f -not -name '*.exe' -not -name '*.dll' -not -name '*.scala' -not -name '*.ML' -not -name '*.thy' -exec chmod 644 '{}' +
+find -type f \( -name '*.scala' -o -name '*.ML' -o -name '*.thy' \) -exec chmod 444 '{}' +
+xargs -0 < contrib/cygwin/isabelle/executables chmod 755

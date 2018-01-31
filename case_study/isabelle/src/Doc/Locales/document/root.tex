@@ -1,0 +1,62 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{tikz}
+\usepackage{subfigure}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{amsmath}
+\usepackage{isabelle,isabellesym}
+\usepackage{verbatim}
+\usepackage{alltt}
+\usepackage{array}
+
+\usepackage{amssymb}
+
+\usepackage{pdfsetup}
+
+\isadroptag{theory}
+\isafoldtag{proof}
+
+% urls in roman style, theory text in typewriter
+\urlstyle{rm}
+\isabellestyle{tt}
+
+
+\begin{document}
+
+\title{Tutorial to Locales and Locale Interpretation%
+\thanks{Published in L.~Lamb\'an, A.~Romero, J.~Rubio, editors, {\em Contribuciones Cient\'{\i}ficas en honor de Mirian Andr\'es.}  Servicio de Publicaciones de la Universidad de La Rioja, Logro\~no, Spain, 2010.  Reproduced by permission.}}
+\author{Clemens Ballarin}
+\date{}
+
+\maketitle
+
+\begin{abstract}
+  Locales are Isabelle's approach for dealing with parametric
+  theories.  They have been designed as a module system for a
+  theorem prover that can adequately represent the complex
+  inter-dependencies between structures found in abstract algebra, but
+  have proven fruitful also in other applications --- for example,
+  software verification.
+
+  Both design and implementation of locales have evolved considerably
+  since Kamm\"uller did his initial experiments.  Today, locales
+  are a simple yet powerful extension of the Isar proof language.
+  The present tutorial covers all major facilities of locales.  It is
+  intended for locale novices; familiarity with Isabelle and Isar is
+  presumed.
+\end{abstract}
+
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

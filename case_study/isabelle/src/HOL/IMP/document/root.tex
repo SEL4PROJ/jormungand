@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{latexsym}
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% snip
+\newcommand{\repeatisanl}[1]{\ifnum#1=0\else\isanewline\repeatisanl{\numexpr#1-1}\fi}
+\newcommand{\snip}[4]{\repeatisanl#2#4\repeatisanl#3}
+
+\urlstyle{rm}
+\isabellestyle{it}
+
+\renewcommand{\isacharunderscore}{\_}
+\renewcommand{\isacharunderscorekeyword}{\_}
+
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+\begin{document}
+
+\title{Concrete Semantics}
+\author{Tobias Nipkow \& Gerwin Klein}
+\maketitle
+
+\begin{abstract}
+This document presents formalizations of the semantics of a simple imperative programming language together with a number of applications: a compiler, type systems, various program analyses and abstract interpreters. These theories form the basis of the book \emph{Concrete Semantics with Isabelle/HOL} by Nipkow and Klein \cite{NipkowK2014}.
+\end{abstract}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\newpage
+
+% generated text of all theories
+\input{session}
+
+\nocite{Nipkow}
+\nocite{ConcreteSemantics}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

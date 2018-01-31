@@ -1,0 +1,53 @@
+
+\documentclass[12pt,a4paper,fleqn]{article}
+\usepackage{latexsym,graphicx}
+\usepackage{tikz}\usetikzlibrary{shapes}\usetikzlibrary{arrows}
+\usepackage{multirow}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+\isadroptag{theory}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] Code generation from Isabelle/HOL theories}
+\author{\emph{Florian Haftmann with contributions from Lukas Bulwahn}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  \noindent This tutorial introduces the code generator facilities of Isabelle/HOL.
+    They empower the user to turn HOL specifications into corresponding executable
+    programs in the languages SML, OCaml, Haskell and Scala.
+\end{abstract}
+
+\thispagestyle{empty}\clearpage
+
+\pagenumbering{roman}
+\clearfirst
+
+\input{Introduction.tex}
+\input{Foundations.tex}
+\input{Refinement.tex}
+\input{Inductive_Predicate.tex}
+\input{Evaluation.tex}
+\input{Adaptation.tex}
+\input{Further.tex}
+
+\begingroup
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{manual}
+\endgroup
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

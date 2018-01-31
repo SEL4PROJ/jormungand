@@ -1,0 +1,98 @@
+\documentclass{article}
+\usepackage{cl2emono-modified,isabelle,isabellesym}
+\usepackage{proof,amsmath,amsfonts,amssymb}
+\usepackage{latexsym,wasysym,verbatim,graphicx,tutorial,ttbox,comment}
+\usepackage{eurosym}
+\usepackage[english]{babel}
+\usepackage{pdfsetup}   
+%last package!
+
+\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
+%\remarksfalse
+
+\makeindex
+
+\index{conditional expressions|see{\isa{if} expressions}}
+\index{primitive recursion|see{recursion, primitive}}
+\index{product type|see{pairs and tuples}}
+\index{structural induction|see{induction, structural}}
+\index{termination|see{functions, total}}
+\index{tuples|see{pairs and tuples}}
+\index{*<*lex*>|see{lexicographic product}}
+
+\underscoreoff
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???
+
+\pagestyle{headings}
+
+
+\begin{document}
+\title{
+\begin{center}
+\includegraphics[scale=.8]{isabelle_hol}
+       \\ \vspace{0.5cm} A Proof Assistant for Higher-Order Logic
+\end{center}}
+\author{Tobias Nipkow \quad Lawrence C. Paulson \quad Markus Wenzel%\\[1ex]
+%Technische Universit{\"a}t M{\"u}nchen \\
+%Institut f{\"u}r Informatik \\[1ex]
+%University of Cambridge\\
+%Computer Laboratory
+}
+\pagenumbering{roman}
+\maketitle
+\newpage
+
+%\setcounter{page}{5}
+%\vspace*{\fill}
+%\begin{center}
+%\LARGE In memoriam \\[1ex]
+%{\sc Annette Schumann}\\[1ex]
+%1959 -- 2001
+%\end{center}
+%\vspace*{\fill}
+%\vspace*{\fill}
+%\newpage
+
+\input{preface}
+
+\tableofcontents
+
+\cleardoublepage\pagenumbering{arabic}
+
+\part{Elementary Techniques}
+\input{basics}
+\input{fp}
+\input{documents0}
+
+\part{Logic and Sets}
+\input{rules}
+\input{sets}
+\input{inductive0}
+
+\part{Advanced Material}
+\input{types0}
+\input{advanced0}
+\input{protocol}
+
+\markboth{}{}
+\cleardoublepage
+\vspace*{\fill}
+\begin{flushright}
+\begin{tabular}{l}
+{\large\sf\slshape You know my methods. Apply them!}\\[1ex]
+Sherlock Holmes
+\end{tabular}
+\end{flushright}
+\vspace*{\fill}
+\vspace*{\fill}
+
+\underscoreoff
+
+\input{appendix0}
+
+\bibliographystyle{plain}
+\bibliography{manual}
+\underscoreoff
+\printindex
+\end{document}

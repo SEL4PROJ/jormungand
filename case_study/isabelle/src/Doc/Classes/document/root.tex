@@ -1,0 +1,46 @@
+\documentclass[12pt,a4paper,fleqn]{article}
+\usepackage{latexsym,graphicx}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+\isadroptag{theory}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] Haskell-style type classes with Isabelle/Isar}
+\author{\emph{Florian Haftmann}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  \noindent This tutorial introduces Isar type classes, which 
+  are a convenient mechanism for organizing specifications.
+  Essentially, they combine an operational aspect (in the
+  manner of Haskell) with a logical aspect, both managed uniformly.
+\end{abstract}
+
+\thispagestyle{empty}\clearpage
+
+\pagenumbering{roman}
+\clearfirst
+
+\input{Classes.tex}
+
+\begingroup
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{manual}
+\endgroup
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

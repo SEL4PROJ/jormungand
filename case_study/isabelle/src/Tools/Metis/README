@@ -1,0 +1,50 @@
+It's a good idea to update the Metis source code regularly, to benefit
+from the latest developments, to avoid a permanent fork, and to detect
+Metis problems early. This file explains how to update the source code
+for Metis with the latest Metis package.
+
+ 1. The files "Makefile" and "script/mlpp" and the directory "src/"
+    must reflect the corresponding files in Joe Hurd's official Metis
+    package. The package that was used when these notes where written
+    was Metis 2.3 (release 20110926).
+
+ 2. The license in each source file will probably not be something we
+    can use in Isabelle. The "fix_metis_license" script can be run to
+    replace all occurrences of "MIT license" with "BSD License". In a
+    13 Sept. 2010 email to Gerwin Klein, Joe Hurd, the sole copyright
+    holder of Metis, wrote:
+
+        I hereby give permission to the Isabelle team to release Metis
+        as part of Isabelle, with the Metis code covered under the
+        Isabelle BSD license.
+
+ 3. Some modifications might have to be done manually to the source
+    files (but probably not). The ultimate way to track them down is
+    to use Mercurial.
+
+ 4. Isabelle itself cares only about "metis.ML", which is generated
+    from the files in "src/" by the script "make_metis". The script
+    relies on "Makefile", "scripts/mlpp", and "src/", as well as
+    the pseudo-makefile "Makefile.FILES" used to determine all the
+    files needed to be included in "metis.ML".
+
+ 5. The output of "make_metis" should then work as is with Isabelle,
+    but there are of course no guarantees. The script "make_metis" and
+    the pseudo-makefile "Makefile.FILES" have a few regexes that could
+    go wrong. They also produce a few temporary files ("FILES",
+    "Makefile.dev", and "bin/mosml/Makefile.src") as side-effects; you
+    can safely ignore them or delete them.
+
+ 6. Once you have successfully regenerated "metis.ML", build all of
+    Isabelle and keep an eye on the time taken by Metis.
+    "HOL-Metis_Examples" is a good test case. Running the Judgement
+    Day suite at this point is also a good idea.
+
+ 7. Once everything is fine and you are ready to push your changes to
+    the main Isabelle repository, take the time to update these
+    instructions, especially points 1 and 3 above.
+
+Good luck!
+
+    Jasmin Blanchette
+    1 December 2011

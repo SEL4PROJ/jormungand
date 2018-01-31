@@ -1,0 +1,36 @@
+Cygwin
+======
+
+* http://www.cygwin.com/
+
+* Mirror with many old versions (not setup.ini)
+  http://ftp.eq.uc.pt/software/pc/prog/cygwin
+
+* Local snapshots:
+  http://isabelle.in.tum.de/cygwin  (Isabelle2012)
+  http://isabelle.in.tum.de/cygwin_2013  (Isabelle2013)
+  http://isabelle.in.tum.de/cygwin_2013-1  (Isabelle2013-1 and Isabelle2013-2)
+  http://isabelle.in.tum.de/cygwin_2014  (Isabelle2014)
+  http://isabelle.in.tum.de/cygwin_2015  (Isabelle2015)
+  http://isabelle.in.tum.de/cygwin_2016  (Isabelle2016)
+  http://isabelle.in.tum.de/cygwin_2016-1  (Isabelle2016-1)
+
+* Quasi-component: "isabelle makedist_cygwin" (as administrator)
+
+* SSH server:
+
+  - run Cygwin terminal as Administrator
+
+  - run ssh-host-config
+
+    StrictMode: yes
+    privilege separation: yes
+    new local account 'sshd': yes
+    sshd as a service: yes
+    different name (than cyg_server): no
+    new privileged account cyg_server: yes
+
+  - mkpasswd -l > /etc/passwd
+    mkgroup -l > /etc/group
+
+    passwd -R USER

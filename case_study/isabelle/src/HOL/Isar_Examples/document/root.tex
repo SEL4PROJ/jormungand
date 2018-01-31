@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{ifthen,proof,amssymb,isabelle,isabellesym}
+\isabellestyle{it}
+\usepackage{pdfsetup}\urlstyle{rm}
+
+\newcommand{\DUMMYPROOF}{{\langle\mathit{proof}\rangle}}
+\newcommand{\dummyproof}{$\DUMMYPROOF$}
+
+\hyphenation{Isabelle}
+
+\begin{document}
+
+\title{Miscellaneous Isabelle/Isar examples}
+\author{Makarius Wenzel \\[2ex]
+  With contributions by Gertrud Bauer and Tobias Nipkow}
+\maketitle
+
+\begin{abstract}
+  Isar offers a high-level proof (and theory) language for Isabelle.
+  We give various examples of Isabelle/Isar proof developments,
+  ranging from simple demonstrations of certain language features to a
+  bit more advanced applications.  The ``real'' applications of
+  Isabelle/Isar are found elsewhere.
+\end{abstract}
+
+\tableofcontents
+
+\parindent 0pt \parskip 0.5ex
+
+\input{session}
+
+\nocite{isabelle-isar-ref,Wenzel:1999:TPHOL}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

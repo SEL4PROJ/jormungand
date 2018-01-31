@@ -1,0 +1,105 @@
+(*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the GNU General Public License version 2. Note that NO WARRANTY is provided.
+ * See "LICENSE_GPLv2.txt" for details.
+ *
+ * @TAG(NICTA_GPL)
+ *)
+
+(*
+ * CAMKES
+ *)
+
+chapter CAmkES
+
+session CamkesAdlSpec (Camkes) in "adl-spec" = HOL +
+  options [document = pdf]
+  theories
+    "Wellformed_CAMKES"
+    "Examples_CAMKES"
+  document_files
+    "imgs/compilation.pdf"
+    "imgs/composite-passthrough.pdf"
+    "imgs/dataport.pdf"
+    "imgs/echo.pdf"
+    "imgs/event.pdf"
+    "imgs/NICTA_logo.pdf"
+    "imgs/terminal.pdf"
+    "intro.tex"
+    "root.tex"
+    "comment.sty"
+
+(* Base session for CAmkES<->CapDL reasoning. This session is intended to be simply a combination
+ * of CamkesAdlSpec and DSpec, and is defined because we can't easily depend on both.
+ *)
+session CamkesCdlBase (Camkes) in "adl-spec" = DPolicy +
+  theories
+    (* DSpec *)
+      "../spec/capDL/Syscall_D"
+    (* CamkesAdlSpec *)
+      "Wellformed_CAMKES"
+      "Examples_CAMKES"
+    (* Lemma buckets *)
+      "../../lib/LemmaBucket"
+
+(* CAmkES<->CapDL reasoning. *)
+session CamkesCdlRefine (Camkes) in "cdl-refine" = CamkesCdlBase +
+  theories
+    Generator_CAMKES_CDL
+
+session CamkesGlueSpec (Camkes) in "glue-spec" = HOL +
+  options [document = pdf]
+  theories
+    Abbreviations
+    CIMP
+    Connector
+    Types
+    UserStubs
+    "example-procedure/GenSimpleSystem"
+    "example-event/GenEventSystem"
+    "example-dataport/GenDataportSystem"
+    "example-untrusted/EgTop"
+    "example-trusted/EgTop2"
+  document_files
+    "dataport.camkes"
+    "event.camkes"
+    "imgs/echo.pdf"
+    "imgs/filter.pdf"
+    "imgs/NICTA_logo.pdf"
+    "imgs/thydeps.pdf"
+    "intro.tex"
+    "root.bib"
+    "root.tex"
+    "filter.camkes"
+    "simple.camkes"
+    "comment.sty"
+
+session CamkesGlueProofs (Camkes) in "glue-proofs" = AutoCorres +
+  options [document = pdf, quick_and_dirty]
+  theories
+    Syntax
+    RPCFrom
+    RPCTo
+    EventFrom
+    EventTo
+    DataIn
+  files
+    "RPCFrom.c"
+    "RPCTo.c"
+    "EventFrom.c"
+    "EventTo.c"
+    "DataIn.c"
+  document_files
+    "eventfrom-emit-underlying.c"
+    "eventto-poll.c"
+    "eventto-wait.c"
+    "from-echo-int.c"
+    "intro.tex"
+    "root.bib"
+    "root.tex"
+    "simple.camkes"
+    "to-echo-int.c"
+    "imgs/NICTA_logo.pdf"
+    "comment.sty"

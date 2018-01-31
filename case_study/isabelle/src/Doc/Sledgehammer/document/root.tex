@@ -1,0 +1,1296 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+\usepackage{color}
+\usepackage{footmisc}
+\usepackage{graphicx}
+%\usepackage{mathpazo}
+\usepackage{multicol}
+\usepackage{stmaryrd}
+%\usepackage[scaled=.85]{beramono}
+\usepackage{isabelle,iman,pdfsetup}
+
+\newcommand\download{\url{http://isabelle.in.tum.de/components/}}
+
+\let\oldS=\S
+\def\S{\oldS\,}
+
+\def\qty#1{\ensuremath{\left<\mathit{#1\/}\right>}}
+\def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1\/}}\right>}$}
+
+\newcommand\const[1]{\textsf{#1}}
+
+%\oddsidemargin=4.6mm
+%\evensidemargin=4.6mm
+%\textwidth=150mm
+%\topmargin=4.6mm
+%\headheight=0mm
+%\headsep=0mm
+%\textheight=234mm
+
+\def\Colon{\mathord{:\mkern-1.5mu:}}
+%\def\lbrakk{\mathopen{\lbrack\mkern-3.25mu\lbrack}}
+%\def\rbrakk{\mathclose{\rbrack\mkern-3.255mu\rbrack}}
+\def\lparr{\mathopen{(\mkern-4mu\mid}}
+\def\rparr{\mathclose{\mid\mkern-4mu)}}
+
+\def\unk{{?}}
+\def\undef{(\lambda x.\; \unk)}
+%\def\unr{\textit{others}}
+\def\unr{\ldots}
+\def\Abs#1{\hbox{\rm{\flqq}}{\,#1\,}\hbox{\rm{\frqq}}}
+\def\Q{{\smash{\lower.2ex\hbox{$\scriptstyle?$}}}}
+
+\urlstyle{tt}
+
+\renewcommand\_{\hbox{\textunderscore\kern-.05ex}}
+
+\begin{document}
+
+%%% TYPESETTING
+%\renewcommand\labelitemi{$\bullet$}
+\renewcommand\labelitemi{\raise.065ex\hbox{\small\textbullet}}
+
+\title{\includegraphics[scale=0.5]{isabelle_sledgehammer} \\[4ex]
+Hammering Away \\[\smallskipamount]
+\Large A User's Guide to Sledgehammer for Isabelle/HOL}
+\author{\hbox{} \\
+Jasmin Christian Blanchette \\
+{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\[4\smallskipamount]
+{\normalsize with contributions from} \\[4\smallskipamount]
+Lawrence C. Paulson \\
+{\normalsize Computer Laboratory, University of Cambridge} \\
+\hbox{}}
+
+\maketitle
+
+\tableofcontents
+
+\setlength{\parskip}{.7em plus .2em minus .1em}
+\setlength{\parindent}{0pt}
+\setlength{\abovedisplayskip}{\parskip}
+\setlength{\abovedisplayshortskip}{.9\parskip}
+\setlength{\belowdisplayskip}{\parskip}
+\setlength{\belowdisplayshortskip}{.9\parskip}
+
+% general-purpose enum environment with correct spacing
+\newenvironment{enum}%
+    {\begin{list}{}{%
+        \setlength{\topsep}{.1\parskip}%
+        \setlength{\partopsep}{.1\parskip}%
+        \setlength{\itemsep}{\parskip}%
+        \advance\itemsep by-\parsep}}
+    {\end{list}}
+
+\def\pre{\begingroup\vskip0pt plus1ex\advance\leftskip by\leftmargin
+\advance\rightskip by\leftmargin}
+\def\post{\vskip0pt plus1ex\endgroup}
+
+\def\prew{\pre\advance\rightskip by-\leftmargin}
+\def\postw{\post}
+
+\section{Introduction}
+\label{introduction}
+
+Sledgehammer is a tool that applies automatic theorem provers (ATPs)
+and satisfiability-modulo-theories (SMT) solvers on the current goal.%
+\footnote{The distinction between ATPs and SMT solvers is convenient but mostly
+historical. The two communities are converging, with more and more ATPs
+supporting typical SMT features such as arithmetic and sorts, and a few SMT
+solvers parsing ATP syntaxes. There is also a strong technological connection
+between instantiation-based ATPs (such as iProver and iProver-Eq) and SMT
+solvers.}
+%
+The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
+\cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
+\cite{korovin-2009}, iProver-Eq \cite{korovin-sticksel-2010}, LEO-II
+\cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
+\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
+Waldmeister \cite{waldmeister}, and Zipperposition \cite{cruanes-2014}.
+The ATPs are run either locally or remotely via the System\-On\-TPTP web service
+\cite{sutcliffe-2000}. The supported SMT solvers are CVC3 \cite{cvc3}, CVC4
+\cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3 \cite{z3}. These are always
+run locally.
+
+The problem passed to the external provers (or solvers) consists of your current
+goal together with a heuristic selection of hundreds of facts (theorems) from the
+current theory context, filtered by relevance.
+
+The result of a successful proof search is some source text that usually (but
+not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
+proof typically relies on the general-purpose \textit{metis} proof method, which
+integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
+the kernel. Thus its results are correct by construction.
+
+For Isabelle/jEdit users, Sledgehammer provides an automatic mode that can be
+enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options >
+Isabelle > General.'' In this mode, a reduced version of Sledgehammer is run on
+every newly entered theorem for a few seconds.
+
+\newbox\boxA
+\setbox\boxA=\hbox{\texttt{NOSPAM}}
+
+\newcommand\authoremail{\texttt{blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+
+To run Sledgehammer, you must make sure that the theory \textit{Sledgehammer} is
+imported---this is rarely a problem in practice since it is part of
+\textit{Main}. Examples of Sledgehammer use can be found in Isabelle's
+\texttt{src/HOL/Metis\_Examples} directory.
+Comments and bug reports concerning Sledgehammer or this manual should be
+directed to the author at \authoremail.
+
+%\vskip2.5\smallskipamount
+%
+%\textbf{Acknowledgment.} The author would like to thank Mark Summerfield for
+%suggesting several textual improvements.
+
+\section{Installation}
+\label{installation}
+
+Sledgehammer is part of Isabelle, so you do not need to install it. However, it
+relies on third-party automatic provers (ATPs and SMT solvers).
+
+Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, Vampire, and
+Zipperposition can be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF,
+iProver, iProver-Eq, LEO-II, Satallax, SNARK, Vampire, and Waldmeister are
+available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
+CVC3, CVC4, veriT, and Z3 can be run locally.
+
+There are three main ways to install automatic provers on your machine:
+
+\begin{sloppy}
+\begin{enum}
+\item[\labelitemi] If you installed an official Isabelle package, it should
+already include properly setup executables for CVC4, E, SPASS, and Z3, ready to use.%
+\footnote{Vampire's license prevents us from doing the same for
+this otherwise remarkable tool.}
+
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
+CVC4, E, SPASS, and Z3 binary packages from \download. Extract the archives,
+then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash
+components}%
+\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
+startup. Its value can be retrieved by executing \texttt{isabelle}
+\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
+file with the absolute path to CVC3, CVC4, E, SPASS, or Z3. For example, if the
+\texttt{components} file does not exist yet and you extracted SPASS to
+\texttt{/usr/local/spass-3.8ds}, create it with the single line
+
+\prew
+\texttt{/usr/local/spass-3.8ds}
+\postw
+
+in it.
+
+\item[\labelitemi] If you prefer to build AgsyHOL, Alt-Ergo, E, LEO-II,
+Satallax, or SPASS manually, or found a Vampire executable somewhere (e.g.,
+\url{http://www.vprover.org/}), set the environment variable
+\texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
+\texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
+\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{agsyHOL},
+\texttt{eprover} (and/or \texttt{eproof} or \texttt{eproof\_ram}),
+\texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable;
+for Alt-Ergo, set the
+environment variable \texttt{WHY3\_HOME} to the directory that contains the
+\texttt{why3} executable.
+Sledgehammer has been tested with AgsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 1.8,
+LEO-II 1.3.4, Satallax 2.2 to 2.7, SPASS 3.8ds, and Vampire 0.6 to 3.0.%
+\footnote{Following the rewrite of Vampire, the counter for version numbers was
+reset to 0; hence the (new) Vampire versions 0.6, 1.0, 1.8, 2.6, and 3.0 are more
+recent than 9.0 or 11.5.}%
+Since the ATPs' output formats are neither documented nor stable, other
+versions might not work well with Sledgehammer. Ideally,
+you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
+\texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
+\texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``3.0'').
+
+Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
+variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
+\texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
+of the executable, \emph{including the file name}. Sledgehammer has been tested
+with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT smtcomp2014, and Z3 4.3.2.
+Since Z3's output format is somewhat unstable, other versions of the solver
+might not work well with Sledgehammer. Ideally, also set
+\texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
+\texttt{Z3\_VERSION} to the solver's version number (e.g., ``4.4.0'').
+\end{enum}
+\end{sloppy}
+
+To check whether E, SPASS, Vampire, and/or Z3 are successfully installed, try
+out the example in \S\ref{first-steps}. If the remote versions of any of these
+provers is used (identified by the prefix ``\textit{remote\_\/}''), or if the
+local versions fail to solve the easy goal presented there, something must be
+wrong with the installation.
+
+Remote prover invocation requires Perl with the World Wide Web Library
+(\texttt{libwww-perl}) installed. If you must use a proxy server to access the
+Internet, set the \texttt{http\_proxy} environment variable to the proxy, either
+in the environment in which Isabelle is launched or in your
+\texttt{\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few
+examples:
+
+\prew
+\texttt{http\_proxy=http://proxy.example.org} \\
+\texttt{http\_proxy=http://proxy.example.org:8080} \\
+\texttt{http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
+\postw
+
+\section{First Steps}
+\label{first-steps}
+
+To illustrate Sledgehammer in context, let us start a theory file and
+attempt to prove a simple lemma:
+
+\prew
+\textbf{theory}~\textit{Scratch} \\
+\textbf{imports}~\textit{Main} \\
+\textbf{begin} \\[2\smallskipamount]
+%
+\textbf{lemma} ``$[a] = [b] \,\Longrightarrow\, a = b$'' \\
+\textbf{sledgehammer}
+\postw
+
+Instead of issuing the \textbf{sledgehammer} command, you can also use the
+Sledgehammer panel in Isabelle/jEdit. Sledgehammer produces the following output
+after a few seconds:
+
+\prew
+\slshape
+Proof found\ldots \\
+``\textit{e\/}'': Try this: \textbf{by} \textit{simp} (0.3 ms) \\
+%
+``\textit{cvc4\/}'': Try this: \textbf{by} \textit{simp} (0.4 ms) \\
+%
+``\textit{z3\/}'': Try this: \textbf{by} \textit{simp} (0.5 ms) \\
+%
+``\textit{spass\/}'': Try this: \textbf{by} \textit{simp} (0.3 ms)
+%
+\postw
+
+Sledgehammer ran CVC4, E, SPASS, and Z3 in parallel. Depending on which
+provers are installed and how many processor cores are available, some of the
+provers might be missing or present with a \textit{remote\_} prefix.
+
+For each successful prover, Sledgehammer gives a one-line \textit{metis} or
+\textit{smt} method call. Rough timings are shown in parentheses, indicating how
+fast the call is. You can click the proof to insert it into the theory text.
+
+In addition, you can ask Sledgehammer for an Isar text proof by enabling the
+\textit{isar\_proofs} option (\S\ref{output-format}):
+
+\prew
+\textbf{sledgehammer} [\textit{isar\_proofs}]
+\postw
+
+When Isar proof construction is successful, it can yield proofs that are more
+readable and also faster than the \textit{metis} or \textit{smt} one-line
+proofs. This feature is experimental and is only available for ATPs.
+
+\section{Hints}
+\label{hints}
+
+This section presents a few hints that should help you get the most out of
+Sledgehammer. Frequently asked questions are answered in
+\S\ref{frequently-asked-questions}.
+
+%\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
+\newcommand\point[1]{\subsection{\emph{#1}}}
+
+\point{Presimplify the goal}
+
+For best results, first simplify your problem by calling \textit{auto} or at
+least \textit{safe} followed by \textit{simp\_all}. The SMT solvers provide
+arithmetic decision procedures, but the ATPs typically do not (or if they do,
+Sledgehammer does not use it yet). Apart from Waldmeister, they are not
+particularly good at heavy rewriting, but because they regard equations as
+undirected, they often prove theorems that require the reverse orientation of a
+\textit{simp} rule. Higher-order problems can be tackled, but the success rate
+is better for first-order problems. Hence, you may get better results if you
+first simplify the problem to remove higher-order features.
+
+\point{Make sure E, SPASS, Vampire, and Z3 are locally installed}
+
+Locally installed provers are faster and more reliable than those running on
+servers. See \S\ref{installation} for details on how to install them.
+
+\point{Familiarize yourself with the main options}
+
+Sledgehammer's options are fully documented in \S\ref{command-syntax}. Many of
+the options are very specialized, but serious users of the tool should at least
+familiarize themselves with the following options:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
+the automatic provers (ATPs and SMT solvers) that should be run whenever
+Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{e spass
+remote\_vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
+and simply write the prover names as a space-separated list (e.g., ``\textit{e
+spass remote\_vampire\/}'').
+
+\item[\labelitemi] \textbf{\textit{max\_facts}} (\S\ref{relevance-filter})
+specifies the maximum number of facts that should be passed to the provers. By
+default, the value is prover-dependent but varies between about 50 and 1000. If
+the provers time out, you can try lowering this value to, say, 25 or 50 and see
+if that helps.
+
+\item[\labelitemi] \textbf{\textit{isar\_proofs}} (\S\ref{output-format}) specifies
+that Isar proofs should be generated, in addition to one-line \textit{metis} or
+\textit{smt} proofs. The length of the Isar proofs can be controlled by setting
+\textit{compress} (\S\ref{output-format}).
+
+\item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
+provers' time limit. It is set to 30 seconds by default.
+\end{enum}
+
+Options can be set globally using \textbf{sledgehammer\_params}
+(\S\ref{command-syntax}). The command also prints the list of all available
+options with their current value. Fact selection can be influenced by specifying
+``$(\textit{add}{:}~\textit{my\_facts})$'' after the \textbf{sledgehammer} call
+to ensure that certain facts are included, or simply ``$(\textit{my\_facts})$''
+to force Sledgehammer to run only with $\textit{my\_facts}$ (and any facts
+chained into the goal).
+
+\section{Frequently Asked Questions}
+\label{frequently-asked-questions}
+
+This sections answers frequently (and infrequently) asked questions about
+Sledgehammer. It is a good idea to skim over it now even if you do not have any
+questions at this stage. And if you have any further questions not listed here,
+send them to the author at \authoremail.
+
+\point{Which facts are passed to the automatic provers?}
+
+Sledgehammer heuristically selects a few hundred relevant lemmas from the
+currently loaded libraries. The component that performs this selection is
+called \emph{relevance filter} (\S\ref{relevance-filter}).
+
+\begin{enum}
+\item[\labelitemi]
+The traditional relevance filter, called \emph{MePo}
+(\underline{Me}ng--\underline{Pau}lson), assigns a score to every available fact
+(lemma, theorem, definition, or axiom) based upon how many constants that fact
+shares with the conjecture. This process iterates to include facts relevant to
+those just accepted. The constants are weighted to give unusual ones greater
+significance. MePo copes best when the conjecture contains some unusual
+constants; if all the constants are common, it is unable to discriminate among
+the hundreds of facts that are picked up. The filter is also memoryless: It has
+no information about how many times a particular fact has been used in a proof,
+and it cannot learn.
+
+\item[\labelitemi]
+An alternative to MePo is \emph{MaSh} (\underline{Ma}chine Learner for
+\underline{S}ledge\underline{h}ammer). It applies machine learning to the
+problem of finding relevant facts.
+
+\item[\labelitemi] The \emph{MeSh} filter combines MePo and MaSh. This is
+the default.
+\end{enum}
+
+The number of facts included in a problem varies from prover to prover, since
+some provers get overwhelmed more easily than others. You can show the number of
+facts given using the \textit{verbose} option (\S\ref{output-format}) and the
+actual facts using \textit{debug} (\S\ref{output-format}).
+
+Sledgehammer is good at finding short proofs combining a handful of existing
+lemmas. If you are looking for longer proofs, you must typically restrict the
+number of facts, by setting the \textit{max\_facts} option
+(\S\ref{relevance-filter}) to, say, 25 or 50.
+
+You can also influence which facts are actually selected in a number of ways. If
+you simply want to ensure that a fact is included, you can specify it using the
+``$(\textit{add}{:}~\textit{my\_facts})$'' syntax. For example:
+%
+\prew
+\textbf{sledgehammer} (\textit{add}: \textit{hd.simps} \textit{tl.simps})
+\postw
+%
+The specified facts then replace the least relevant facts that would otherwise be
+included; the other selected facts remain the same.
+If you want to direct the selection in a particular direction, you can specify
+the facts via \textbf{using}:
+%
+\prew
+\textbf{using} \textit{hd.simps} \textit{tl.simps} \\
+\textbf{sledgehammer}
+\postw
+%
+The facts are then more likely to be selected than otherwise, and if they are
+selected at iteration $j$ they also influence which facts are selected at
+iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
+%
+\prew
+\textbf{using} \textit{hd.simps} \textit{tl.simps} \\
+\textbf{apply}~\textbf{--} \\
+\textbf{sledgehammer}
+\postw
+
+\point{Why does Metis fail to reconstruct the proof?}
+
+There are many reasons. If Metis runs seemingly forever, that is a sign that the
+proof is too difficult for it. Metis's search is complete for first-order logic
+with equality, so if the proof was found by an ATP such as E, SPASS, or Vampire,
+Metis should eventually find it, but that's little consolation.
+
+In some rare cases, \textit{metis} fails fairly quickly, and you get the error
+message ``One-line proof reconstruction failed.'' This indicates that
+Sledgehammer determined that the goal is provable, but the proof is, for
+technical reasons, beyond \textit{metis}'s power. You can then try again with
+the \textit{strict} option (\S\ref{problem-encoding}).
+
+If the goal is actually unprovable and you did not specify an unsound encoding
+using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
+strongly encouraged to report this to the author at \authoremail.
+
+\point{How can I tell whether a suggested proof is sound?}
+
+Earlier versions of Sledgehammer often suggested unsound proofs---either proofs
+of nontheorems or simply proofs that rely on type-unsound inferences. This
+is a thing of the past, unless you explicitly specify an unsound encoding
+using \textit{type\_enc} (\S\ref{problem-encoding}).
+%
+Officially, the only form of ``unsoundness'' that lurks in the sound
+encodings is related to missing characteristic theorems of datatypes. For
+example,
+
+\prew
+\textbf{lemma}~``$\exists \mathit{xs}.\; \mathit{xs} \neq []$'' \\
+\textbf{sledgehammer} ()
+\postw
+
+suggests an argumentless \textit{metis} call that fails. However, the conjecture
+does actually hold, and the \textit{metis} call can be repaired by adding
+\textit{list.distinct}.
+%
+We hope to address this problem in a future version of Isabelle. In the
+meantime, you can avoid it by passing the \textit{strict} option
+(\S\ref{problem-encoding}).
+
+\point{What are the \textit{full\_types}, \textit{no\_types}, and
+\textit{mono\_tags} arguments to Metis?}
+
+The \textit{metis}~(\textit{full\_types}) proof method
+and its cousin \textit{metis}~(\textit{mono\_tags}) are fully-typed
+versions of Metis. It is somewhat slower than \textit{metis}, but the proof
+search is fully typed, and it also includes more powerful rules such as the
+axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
+higher-order places (e.g., in set comprehensions). The method is automatically
+tried as a fallback when \textit{metis} fails, and it is sometimes
+generated by Sledgehammer instead of \textit{metis} if the proof obviously
+requires type information or if \textit{metis} failed when Sledgehammer
+preplayed the proof. (By default, Sledgehammer tries to run \textit{metis} with
+various sets of option for up to 1~second each time to ensure that the generated
+one-line proofs actually work and to display timing information. This can be
+configured using the \textit{preplay\_timeout} and \textit{dont\_preplay}
+options (\S\ref{timeouts}).)
+%
+At the other end of the soundness spectrum, \textit{metis} (\textit{no\_types})
+uses no type information at all during the proof search, which is more efficient
+but often fails. Calls to \textit{metis} (\textit{no\_types}) are occasionally
+generated by Sledgehammer.
+%
+See the \textit{type\_enc} option (\S\ref{problem-encoding}) for details.
+
+Incidentally, if you ever see warnings such as
+
+\prew
+\slshape
+Metis: Falling back on ``\textit{metis} (\textit{full\_types})''
+\postw
+
+for a successful \textit{metis} proof, you can advantageously pass the
+\textit{full\_types} option to \textit{metis} directly.
+
+\point{And what are the \textit{lifting} and \textit{hide\_lams} arguments
+to Metis?}
+
+Orthogonally to the encoding of types, it is important to choose an appropriate
+translation of $\lambda$-abstractions. Metis supports three translation schemes,
+in decreasing order of power: Curry combinators (the default),
+$\lambda$-lifting, and a ``hiding'' scheme that disables all reasoning under
+$\lambda$-abstractions. The more powerful schemes also give the automatic
+provers more rope to hang themselves. See the \textit{lam\_trans} option (\S\ref{problem-encoding}) for details.
+
+\point{Are generated proofs minimal?}
+
+Automatic provers frequently use many more facts than are necessary.
+Sledgehammer includes a minimization tool that takes a set of facts returned by
+a given prover and repeatedly calls a prover or proof method with subsets of
+those facts to find a minimal set. Reducing the number of facts typically helps
+reconstruction, while also removing superfluous clutter from the proof scripts.
+
+In earlier versions of Sledgehammer, generated proofs were systematically
+accompanied by a suggestion to invoke the minimization tool. This step is now
+performed by default but can be disabled using the \textit{minimize} option
+(\S\ref{mode-of-operation}).
+
+\point{A strange error occurred---what should I do?}
+
+Sledgehammer tries to give informative error messages. Please report any strange
+error to the author at \authoremail.
+
+\point{Auto can solve it---why not Sledgehammer?}
+
+Problems can be easy for \textit{auto} and difficult for automatic provers, but
+the reverse is also true, so do not be discouraged if your first attempts fail.
+Because the system refers to all theorems known to Isabelle, it is particularly
+suitable when your goal has a short proof but requires lemmas that you do not
+know about.
+
+\point{Why are there so many options?}
+
+Sledgehammer's philosophy should work out of the box, without user guidance.
+Many of the options are meant to be used mostly by the Sledgehammer developers
+for experiments. Of course, feel free to try them out if you are so inclined.
+
+\section{Command Syntax}
+\label{command-syntax}
+
+\subsection{Sledgehammer}
+\label{sledgehammer}
+
+Sledgehammer can be invoked at any point when there is an open goal by entering
+the \textbf{sledgehammer} command in the theory file. Its general syntax is as
+follows:
+
+\prew
+\textbf{sledgehammer} \qty{subcommand}$^?$ \qty{options}$^?$ \qty{facts\_override}$^?$ \qty{num}$^?$
+\postw
+
+In the general syntax, the \qty{subcommand} may be any of the following:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{run} (the default):} Runs Sledgehammer on
+subgoal number \qty{num} (1 by default), with the given options and facts.
+
+\item[\labelitemi] \textbf{\textit{supported\_provers}:} Prints the list of
+automatic provers supported by Sledgehammer. See \S\ref{installation} and
+\S\ref{mode-of-operation} for more information on how to install automatic
+provers.
+
+\item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
+ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
+\end{enum}
+
+In addition, the following subcommands provide finer control over machine
+learning with MaSh:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{unlearn}:} Resets MaSh, erasing any
+persistent state.
+
+\item[\labelitemi] \textbf{\textit{learn\_isar}:} Invokes MaSh on the current
+theory to process all the available facts, learning from their Isabelle/Isar
+proofs. This happens automatically at Sledgehammer invocations if the
+\textit{learn} option (\S\ref{relevance-filter}) is enabled.
+
+\item[\labelitemi] \textbf{\textit{learn\_prover}:} Invokes MaSh on the current
+theory to process all the available facts, learning from proofs generated by
+automatic provers. The prover to use and its timeout can be set using the
+\textit{prover} (\S\ref{mode-of-operation}) and \textit{timeout}
+(\S\ref{timeouts}) options. It is recommended to perform learning using an
+efficient first-order ATP (such as E, SPASS, and Vampire) as opposed to a
+higher-order ATP or an SMT solver.
+
+\item[\labelitemi] \textbf{\textit{relearn\_isar}:} Same as \textit{unlearn}
+followed by \textit{learn\_isar}.
+
+\item[\labelitemi] \textbf{\textit{relearn\_prover}:} Same as \textit{unlearn}
+followed by \textit{learn\_prover}.
+\end{enum}
+
+Sledgehammer's behavior can be influenced by various \qty{options}, which can be
+specified in brackets after the \textbf{sledgehammer} command. The
+\qty{options} are a list of key--value pairs of the form ``[$k_1 = v_1,
+\ldots, k_n = v_n$]''. For Boolean options, ``= \textit{true\/}'' is optional.
+For example:
+
+\prew
+\textbf{sledgehammer} [\textit{isar\_proofs}, \,\textit{timeout} = 120]
+\postw
+
+Default values can be set using \textbf{sledgehammer\_\allowbreak params}:
+
+\prew
+\textbf{sledgehammer\_params} \qty{options}
+\postw
+
+The supported options are described in \S\ref{option-reference}.
+
+The \qty{facts\_override} argument lets you alter the set of facts that go
+through the relevance filter. It may be of the form ``(\qty{facts})'', where
+\qty{facts} is a space-separated list of Isabelle facts (theorems, local
+assumptions, etc.), in which case the relevance filter is bypassed and the given
+facts are used. It may also be of the form ``(\textit{add}:\ \qty{facts\/_{\mathrm{1}}})'',
+``(\textit{del}:\ \qty{facts\/_{\mathrm{2}}})'', or ``(\textit{add}:\ \qty{facts\/_{\mathrm{1}}}\
+\textit{del}:\ \qty{facts\/_{\mathrm{2}}})'', where the relevance filter is instructed to
+proceed as usual except that it should consider \qty{facts\/_{\mathrm{1}}}
+highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
+
+If you use Isabelle/jEdit, Sledgehammer also provides an automatic mode that can
+be enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options
+> Isabelle > General.'' For automatic runs, only the first prover set using
+\textit{provers} (\S\ref{mode-of-operation}) is considered (typically E),
+\textit{slice} (\S\ref{mode-of-operation}) is disabled,
+fewer facts are
+passed to the prover, \textit{fact\_filter} (\S\ref{relevance-filter}) is set to
+\textit{mepo}, \textit{strict} (\S\ref{problem-encoding}) is enabled,
+\textit{verbose} (\S\ref{output-format}) and \textit{debug}
+(\S\ref{output-format}) are disabled, and \textit{timeout} (\S\ref{timeouts}) is
+superseded by the ``Auto Time Limit'' option in jEdit. Sledgehammer's output is
+also more concise.
+
+\subsection{Metis}
+\label{metis}
+
+The \textit{metis} proof method has the syntax
+
+\prew
+\textbf{\textit{metis}}~(\qty{options})${}^?$~\qty{facts}${}^?$
+\postw
+
+where \qty{facts} is a list of arbitrary facts and \qty{options} is a
+comma-separated list consisting of at most one $\lambda$ translation scheme
+specification with the same semantics as Sledgehammer's \textit{lam\_trans}
+option (\S\ref{problem-encoding}) and at most one type encoding specification
+with the same semantics as Sledgehammer's \textit{type\_enc} option
+(\S\ref{problem-encoding}).
+%
+The supported $\lambda$ translation schemes are \textit{hide\_lams},
+\textit{lifting}, and \textit{combs} (the default).
+%
+All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
+For convenience, the following aliases are provided:
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{full\_types}:} Alias for \textit{poly\_guards\_query}.
+\item[\labelitemi] \textbf{\textit{partial\_types}:} Alias for \textit{poly\_args}.
+\item[\labelitemi] \textbf{\textit{no\_types}:} Alias for \textit{erased}.
+\end{enum}
+
+\section{Option Reference}
+\label{option-reference}
+
+\def\defl{\{}
+\def\defr{\}}
+
+\def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
+\def\optrueonly#1{\flushitem{\textit{#1} $\bigl[$= \textit{true}$\bigr]$\enskip}\nopagebreak\\[\parskip]}
+\def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmartx#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\\\hbox{}\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
+\def\opnodefaultbrk#1#2{\flushitem{$\bigl[$\textit{#1} =$\bigr]$ \qtybf{#2}} \nopagebreak\\[\parskip]}
+\def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\enskip \defl\textit{#3}\defr} \nopagebreak\\[\parskip]}
+\def\oparg#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
+\def\opargbool#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+\def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+
+Sledgehammer's options are categorized as follows:\ mode of operation
+(\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}),
+relevance filter (\S\ref{relevance-filter}), output format
+(\S\ref{output-format}), regression testing (\S\ref{regression-testing}),
+and timeouts (\S\ref{timeouts}).
+
+The descriptions below refer to the following syntactic quantities:
+
+\begin{enum}
+\item[\labelitemi] \qtybf{string}: A string.
+\item[\labelitemi] \qtybf{bool\/}: \textit{true} or \textit{false}.
+\item[\labelitemi] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or
+\textit{smart}.
+\item[\labelitemi] \qtybf{int\/}: An integer.
+\item[\labelitemi] \qtybf{float}: A floating-point number (e.g., 2.5 or 60)
+expressing a number of seconds.
+\item[\labelitemi] \qtybf{float\_pair\/}: A pair of floating-point numbers
+(e.g., 0.6 0.95).
+\item[\labelitemi] \qtybf{smart\_int\/}: An integer or \textit{smart}.
+\end{enum}
+
+Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
+have a negative counterpart (e.g., \textit{minimize} vs.\
+\textit{dont\_minimize}). When setting Boolean options or their negative
+counterparts, ``= \textit{true\/}'' may be omitted.
+
+\subsection{Mode of Operation}
+\label{mode-of-operation}
+
+\begin{enum}
+\opnodefaultbrk{provers}{string}
+Specifies the automatic provers to use as a space-separated list (e.g.,
+``\textit{e}~\textit{spass}~\textit{remote\_vampire\/}'').
+Provers can be run locally or remotely; see \S\ref{installation} for
+installation instructions.
+
+The following local provers are supported:
+
+\begin{sloppy}
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{agsyhol}:} AgsyHOL is an automatic
+higher-order prover developed by Fredrik Lindblad \cite{agsyHOL},
+with support for the TPTP typed higher-order syntax (THF0). To use AgsyHOL, set
+the environment variable \texttt{AGSYHOL\_HOME} to the directory that contains
+the \texttt{agsyHOL} executable. Sledgehammer has been tested with version 1.0.
+
+\item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
+ATP developed by Bobot et al.\ \cite{alt-ergo}.
+It supports the TPTP polymorphic typed first-order format (TFF1) via Why3
+\cite{why3}. To use Alt-Ergo, set the environment variable \texttt{WHY3\_HOME}
+to the directory that contains the \texttt{why3} executable. Sledgehammer
+requires Alt-Ergo 0.95.2 and Why3 0.83.
+
+\item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
+Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
+set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
+executable, including the file name, or install the prebuilt CVC3 package from
+\download. Sledgehammer has been tested with versions 2.2 and 2.4.1.
+
+\item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 \cite{cvc4} is the successor to
+CVC3. To use CVC4, set the environment variable \texttt{CVC4\_SOLVER} to the
+complete path of the executable, including the file name, or install the
+prebuilt CVC4 package from \download. Sledgehammer has been tested with version
+1.5-prerelease.
+
+\item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
+developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
+variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
+executable and \texttt{E\_VERSION} to the version number (e.g., ``1.8''), or
+install the prebuilt E package from \download. Sledgehammer has been tested with
+versions 1.6 to 1.8.
+
+\item[\labelitemi] \textbf{\textit{e\_males}:} E-MaLeS is a metaprover developed
+by Daniel K\"uhlwein that implements strategy scheduling on top of E. To use
+E-MaLeS, set the environment variable \texttt{E\_MALES\_HOME} to the directory
+that contains the \texttt{emales.py} script. Sledgehammer has been tested with
+version 1.1.
+
+\item[\labelitemi] \textbf{\textit{e\_par}:} E-Par is an experimental metaprover
+developed by Josef Urban that implements strategy scheduling on top of E. To use
+E-Par, set the environment variable \texttt{E\_HOME} to the directory that
+contains the \texttt{runepar.pl} script and the \texttt{eprover} and
+\texttt{epclextract} executables, or use the prebuilt E package from \download.
+Be aware that E-Par is experimental software. It has been known to generate
+zombie processes. Use at your own risks.
+
+\item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
+instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}.
+To use iProver, set the environment variable \texttt{IPROVER\_HOME} to the
+directory that contains the \texttt{iprover} and \texttt{vclausify\_rel}
+executables. Sledgehammer has been tested with version 0.99.
+
+\item[\labelitemi] \textbf{\textit{iprover\_eq}:} iProver-Eq is an
+instantiation-based prover with native support for equality developed by
+Konstantin Korovin and Christoph Sticksel \cite{korovin-sticksel-2010}. To use
+iProver-Eq, set the environment variable \texttt{IPROVER\_EQ\_HOME} to the
+directory that contains the \texttt{iprover-eq} and \texttt{vclausify\_rel}
+executables. Sledgehammer has been tested with version 0.8.
+
+\item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
+higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
+with support for the TPTP typed higher-order syntax (THF0). To use LEO-II, set
+the environment variable \texttt{LEO2\_HOME} to the directory that contains the
+\texttt{leo} executable. Sledgehammer requires version 1.3.4 or above.
+
+\item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
+higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
+support for the TPTP typed higher-order syntax (THF0). To use Satallax, set the
+environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
+\texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
+
+\item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
+prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
+To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
+that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
+version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
+\download. Sledgehammer requires version 3.8ds or above.
+
+\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order
+resolution prover developed by Andrei Voronkov and his colleagues
+\cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
+\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
+executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
+``3.0''). Sledgehammer has been tested with versions 0.6 to 3.0.
+Versions strictly above 1.8 support the TPTP typed first-order format (TFF0).
+
+\item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is an
+SMT solver developed by David Déharbe, Pascal Fontaine, and their colleagues.
+It is specifically designed to produce detailed proofs for reconstruction in
+proof assistants. To use veriT, set the environment variable
+\texttt{VERIT\_SOLVER} to the complete path of the executable, including the
+file name. Sledgehammer has been tested with version smtcomp2014.
+
+\item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
+Microsoft Research \cite{z3}. To use Z3, set the environment variable
+\texttt{Z3\_SOLVER} to the complete path of the executable, including the
+file name. Sledgehammer has been tested with a pre-release version of 4.4.0.
+
+\item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
+an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
+formats (FOF and TFF0). It is included for experimental purposes. It requires
+version 4.3.1 of Z3 or above. To use it, set the environment variable
+\texttt{Z3\_TPTP\_HOME} to the directory that contains the \texttt{z3\_tptp}
+executable.
+
+\item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
+\cite{cruanes-2014} is an experimental first-order resolution prover developed
+by Simon Cruane. To use Zipperposition, set the environment variable
+\texttt{ZIPPERPOSITION\_HOME} to the directory that contains the
+\texttt{zipperposition} executable.
+\end{enum}
+
+\end{sloppy}
+
+Moreover, the following remote provers are supported:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{remote\_agsyhol}:} The remote version of
+AgsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
+on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_e\_sine}:} E-SInE is a metaprover
+developed by Kry\v stof Hoder \cite{sine} based on E. It runs on Geoff
+Sutcliffe's Miami servers.
+
+\item[\labelitemi] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
+developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
+servers. This ATP supports the TPTP typed first-order format (TFF0). The
+remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
+
+\item[\labelitemi] \textbf{\textit{remote\_iprover}:} The
+remote version of iProver runs on Geoff Sutcliffe's Miami servers
+\cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_iprover\_eq}:} The
+remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
+\cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
+runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_pirate}:} Pirate is a
+highly experimental first-order resolution prover developed by Daniel Wand.
+The remote version of Pirate run on a private server he generously set up.
+
+\item[\labelitemi] \textbf{\textit{remote\_satallax}:} The remote version of
+Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_snark}:} SNARK is a first-order
+resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
+TPTP typed first-order format (TFF0). The remote version of SNARK runs on
+Geoff Sutcliffe's Miami servers.
+
+\item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
+Vampire runs on Geoff Sutcliffe's Miami servers.
+
+\item[\labelitemi] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
+equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
+used to prove universally quantified equations using unconditional equations,
+corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
+runs on Geoff Sutcliffe's Miami servers.
+\end{enum}
+
+By default, Sledgehammer runs a subset of CVC4, E, E-SInE, SPASS, Vampire,
+veriT, and Z3 in parallel, either locally or remotely---depending on the number
+of processor cores available and on which provers are actually installed. It is
+generally a good idea to run several provers in parallel.
+
+\opnodefault{prover}{string}
+Alias for \textit{provers}.
+
+\optrue{slice}{dont\_slice}
+Specifies whether the time allocated to a prover should be sliced into several
+segments, each of which has its own set of possibly prover-dependent options.
+For SPASS and Vampire, the first slice tries the fast but incomplete
+set-of-support (SOS) strategy, whereas the second slice runs without it. For E,
+up to three slices are tried, with different weighted search strategies and
+number of facts. For SMT solvers, several slices are tried with the same options
+each time but fewer and fewer facts. According to benchmarks with a timeout of
+30 seconds, slicing is a valuable optimization, and you should probably leave it
+enabled unless you are conducting experiments.
+
+\nopagebreak
+{\small See also \textit{verbose} (\S\ref{output-format}).}
+
+\optrue{minimize}{dont\_minimize}
+Specifies whether the minimization tool should be invoked automatically after
+proof search.
+
+\nopagebreak
+{\small See also \textit{preplay\_timeout} (\S\ref{timeouts})
+and \textit{dont\_preplay} (\S\ref{timeouts}).}
+
+\opfalse{spy}{dont\_spy}
+Specifies whether Sledgehammer should record statistics in
+\texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak spy\_\allowbreak sledgehammer}.
+These statistics can be useful to the developers of Sledgehammer. If you are willing to have your
+interactions recorded in the name of science, please enable this feature and send the statistics
+file every now and then to the author of this manual (\authoremail).
+To change the default value of this option globally, set the environment variable
+\texttt{SLEDGEHAMMER\_SPY} to \textit{yes}.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
+\opfalse{overlord}{no\_overlord}
+Specifies whether Sledgehammer should put its temporary files in
+\texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
+debugging Sledgehammer but also unsafe if several instances of the tool are run
+simultaneously. The files are identified by the prefixes \texttt{prob\_} and
+\texttt{mash\_}; you may safely remove them after Sledgehammer has run.
+
+\textbf{Warning:} This option is not thread-safe. Use at your own risks.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+\end{enum}
+
+\subsection{Relevance Filter}
+\label{relevance-filter}
+
+\begin{enum}
+\opdefault{fact\_filter}{string}{smart}
+Specifies the relevance filter to use. The following filters are available:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{mepo}:}
+The traditional memoryless MePo relevance filter.
+
+\item[\labelitemi] \textbf{\textit{mash}:}
+The MaSh machine learner. Three learning algorithms are provided:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{nb}} is an implementation of naive Bayes.
+
+\item[\labelitemi] \textbf{\textit{knn}} is an implementation of $k$-nearest
+neighbors.
+
+\item[\labelitemi] \textbf{\textit{nb\_knn}} (also called \textbf{\textit{yes}}
+and \textbf{\textit{sml}}) is a combination of naive Bayes and $k$-nearest
+neighbors.
+\end{enum}
+
+In addition, the special value \textit{none} is used to disable machine learning by
+default (cf.\ \textit{smart} below).
+
+The default algorithm is \textit{nb\_knn}. The algorithm can be selected by
+setting the ``MaSh'' option under ``Plugins > Plugin Options > Isabelle >
+General'' in Isabelle/jEdit. Persistent data for both algorithms is stored in
+the directory \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak
+mash}.
+
+\item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
+rankings from MePo and MaSh.
+
+\item[\labelitemi] \textbf{\textit{smart}:} A combination of MePo, MaSh, and
+MeSh. If the learning algorithm is set to be \textit{none}, \textit{smart}
+behaves like MePo.
+\end{enum}
+
+\opdefault{max\_facts}{smart\_int}{smart}
+Specifies the maximum number of facts that may be returned by the relevance
+filter. If the option is set to \textit{smart} (the default), it effectively
+takes a value that was empirically found to be appropriate for the prover.
+Typical values lie between 50 and 1000.
+
+\opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
+Specifies the thresholds above which facts are considered relevant by the
+relevance filter. The first threshold is used for the first iteration of the
+relevance filter and the second threshold is used for the last iteration (if it
+is reached). The effective threshold is quadratically interpolated for the other
+iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
+are relevant and 1 only theorems that refer to previously seen constants.
+
+\optrue{learn}{dont\_learn}
+Specifies whether MaSh should be run automatically by Sledgehammer to learn the
+available theories (and hence provide more accurate results). Learning takes
+place only if MaSh is enabled.
+
+\opdefault{max\_new\_mono\_instances}{int}{smart}
+Specifies the maximum number of monomorphic instances to generate beyond
+\textit{max\_facts}. The higher this limit is, the more monomorphic instances
+are potentially generated. Whether monomorphization takes place depends on the
+type encoding used. If the option is set to \textit{smart} (the default), it
+takes a value that was empirically found to be appropriate for the prover. For
+most provers, this value is 100.
+
+\nopagebreak
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
+
+\opdefault{max\_mono\_iters}{int}{smart}
+Specifies the maximum number of iterations for the monomorphization fixpoint
+construction. The higher this limit is, the more monomorphic instances are
+potentially generated. Whether monomorphization takes place depends on the
+type encoding used. If the option is set to \textit{smart} (the default), it
+takes a value that was empirically found to be appropriate for the prover.
+For most provers, this value is 3.
+
+\nopagebreak
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
+\end{enum}
+
+\subsection{Problem Encoding}
+\label{problem-encoding}
+
+\newcommand\comb[1]{\const{#1}}
+
+\begin{enum}
+\opdefault{lam\_trans}{string}{smart}
+Specifies the $\lambda$ translation scheme to use in ATP problems. The supported
+translation schemes are listed below:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{hide\_lams}:} Hide the $\lambda$-abstractions
+by replacing them by unspecified fresh constants, effectively disabling all
+reasoning under $\lambda$-abstractions.
+
+\item[\labelitemi] \textbf{\textit{lifting}:} Introduce a new
+supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,
+defined using an equation $\const{c}~x_1~\ldots~x_n = t$ ($\lambda$-lifting).
+
+\item[\labelitemi] \textbf{\textit{combs}:} Rewrite lambdas to the Curry
+combinators (\comb{I}, \comb{K}, \comb{S}, \comb{B}, \comb{C}). Combinators
+enable the ATPs to synthesize $\lambda$-terms but tend to yield bulkier formulas
+than $\lambda$-lifting: The translation is quadratic in the worst case, and the
+equational definitions of the combinators are very prolific in the context of
+resolution.
+
+\item[\labelitemi] \textbf{\textit{combs\_and\_lifting}:} Introduce a new
+supercombinator \const{c} for each cluster of $\lambda$-abstractions and characterize it both using a
+lifted equation $\const{c}~x_1~\ldots~x_n = t$ and via Curry combinators.
+
+\item[\labelitemi] \textbf{\textit{combs\_or\_lifting}:} For each cluster of
+$\lambda$-abstractions, heuristically choose between $\lambda$-lifting and Curry
+combinators.
+
+\item[\labelitemi] \textbf{\textit{keep\_lams}:}
+Keep the $\lambda$-abstractions in the generated problems. This is available
+only with provers that support the THF0 syntax.
+
+\item[\labelitemi] \textbf{\textit{smart}:} The actual translation scheme used
+depends on the ATP and should be the most efficient scheme for that ATP.
+\end{enum}
+
+For SMT solvers, the $\lambda$ translation scheme is always \textit{lifting},
+irrespective of the value of this option.
+
+\opsmartx{uncurried\_aliases}{no\_uncurried\_aliases}
+Specifies whether fresh function symbols should be generated as aliases for
+applications of curried functions in ATP problems.
+
+\opdefault{type\_enc}{string}{smart}
+Specifies the type encoding to use in ATP problems. Some of the type encodings
+are unsound, meaning that they can give rise to spurious proofs
+(unreconstructible using \textit{metis}). The type encodings are
+listed below, with an indication of their soundness in parentheses.
+An asterisk (*) indicates that the encoding is slightly incomplete for
+reconstruction with \textit{metis}, unless the \textit{strict} option (described
+below) is enabled.
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{erased} (unsound):} No type information is
+supplied to the ATP, not even to resolve overloading. Types are simply erased.
+
+\item[\labelitemi] \textbf{\textit{poly\_guards} (sound):} Types are encoded using
+a predicate \const{g}$(\tau, t)$ that guards bound
+variables. Constants are annotated with their types, supplied as extra
+arguments, to resolve overloading.
+
+\item[\labelitemi] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
+tagged with its type using a function $\const{t\/}(\tau, t)$.
+
+\item[\labelitemi] \textbf{\textit{poly\_args} (unsound):}
+Like for \textit{poly\_guards} constants are annotated with their types to
+resolve overloading, but otherwise no type information is encoded. This
+is the default encoding used by the \textit{metis} proof method.
+
+\item[\labelitemi]
+\textbf{%
+\textit{raw\_mono\_guards}, \textit{raw\_mono\_tags} (sound); \\
+\textit{raw\_mono\_args} (unsound):} \\
+Similar to \textit{poly\_guards}, \textit{poly\_tags}, and \textit{poly\_args},
+respectively, but the problem is additionally monomorphized, meaning that type
+variables are instantiated with heuristically chosen ground types.
+Monomorphization can simplify reasoning but also leads to larger fact bases,
+which can slow down the ATPs.
+
+\item[\labelitemi]
+\textbf{%
+\textit{mono\_guards}, \textit{mono\_tags} (sound);
+\textit{mono\_args} (unsound):} \\
+Similar to
+\textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, and
+\textit{raw\_mono\_args}, respectively but types are mangled in constant names
+instead of being supplied as ground term arguments. The binary predicate
+$\const{g}(\tau, t)$ becomes a unary predicate
+$\const{g\_}\tau(t)$, and the binary function
+$\const{t}(\tau, t)$ becomes a unary function
+$\const{t\_}\tau(t)$.
+
+\item[\labelitemi] \textbf{\textit{mono\_native} (sound):} Exploits native
+first-order types if the prover supports the TFF0, TFF1, or THF0 syntax;
+otherwise, falls back on \textit{mono\_guards}. The problem is monomorphized.
+
+\item[\labelitemi] \textbf{\textit{mono\_native\_higher} (sound):} Exploits
+native higher-order types if the prover supports the THF0 syntax; otherwise,
+falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
+monomorphized.
+
+\item[\labelitemi] \textbf{\textit{poly\_native} (sound):} Exploits native
+first-order polymorphic types if the prover supports the TFF1 syntax; otherwise,
+falls back on \textit{mono\_native}.
+
+\item[\labelitemi]
+\textbf{%
+\textit{poly\_guards}?, \textit{poly\_tags}?, \textit{raw\_mono\_guards}?, \\
+\textit{raw\_mono\_tags}?, \textit{mono\_guards}?, \textit{mono\_tags}?, \\
+\textit{mono\_native}? (sound*):} \\
+The type encodings \textit{poly\_guards}, \textit{poly\_tags},
+\textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, \textit{mono\_guards},
+\textit{mono\_tags}, and \textit{mono\_native} are fully typed and sound. For
+each of these, Sledgehammer also provides a lighter variant identified by a
+question mark (`\hbox{?}')\ that detects and erases monotonic types, notably
+infinite types. (For \textit{mono\_native}, the types are not actually erased
+but rather replaced by a shared uniform type of individuals.) As argument to the
+\textit{metis} proof method, the question mark is replaced by a
+\hbox{``\textit{\_query\/}''} suffix.
+
+\item[\labelitemi]
+\textbf{%
+\textit{poly\_guards}??, \textit{poly\_tags}??, \textit{raw\_mono\_guards}??, \\
+\textit{raw\_mono\_tags}??, \textit{mono\_guards}??, \textit{mono\_tags}?? \\
+(sound*):} \\
+Even lighter versions of the `\hbox{?}' encodings. As argument to the
+\textit{metis} proof method, the `\hbox{??}' suffix is replaced by
+\hbox{``\textit{\_query\_query\/}''}.
+
+\item[\labelitemi]
+\textbf{%
+\textit{poly\_guards}@, \textit{poly\_tags}@, \textit{raw\_mono\_guards}@, \\
+\textit{raw\_mono\_tags}@ (sound*):} \\
+Alternative versions of the `\hbox{??}' encodings. As argument to the
+\textit{metis} proof method, the `\hbox{@}' suffix is replaced by
+\hbox{``\textit{\_at\/}''}.
+
+\item[\labelitemi] \textbf{\textit{poly\_args}?, \textit{raw\_mono\_args}? (unsound):} \\
+Lighter versions of \textit{poly\_args} and \textit{raw\_mono\_args}.
+
+\item[\labelitemi] \textbf{\textit{smart}:} The actual encoding used depends on
+the ATP and should be the most efficient sound encoding for that ATP.
+\end{enum}
+
+For SMT solvers, the type encoding is always \textit{mono\_native}, irrespective
+of the value of this option.
+
+\nopagebreak
+{\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
+and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
+
+\opfalse{strict}{non\_strict}
+Specifies whether Sledgehammer should run in its strict mode. In that mode,
+sound type encodings marked with an asterisk (*) above are made complete
+for reconstruction with \textit{metis}, at the cost of some clutter in the
+generated problems. This option has no effect if \textit{type\_enc} is
+deliberately set to an unsound encoding.
+\end{enum}
+
+\subsection{Output Format}
+\label{output-format}
+
+\begin{enum}
+
+\opfalse{verbose}{quiet}
+Specifies whether the \textbf{sledgehammer} command should explain what it does.
+
+\opfalse{debug}{no\_debug}
+Specifies whether Sledgehammer should display additional debugging information
+beyond what \textit{verbose} already displays. Enabling \textit{debug} also
+enables \textit{verbose} behind the scenes.
+
+\nopagebreak
+{\small See also \textit{spy} (\S\ref{mode-of-operation}) and
+\textit{overlord} (\S\ref{mode-of-operation}).}
+
+\opsmart{isar\_proofs}{no\_isar\_proofs}
+Specifies whether Isar proofs should be output in addition to one-line proofs.
+The construction of Isar proof is still experimental and may sometimes fail;
+however, when they succeed they are usually faster and more intelligible than
+one-line proofs. If the option is set to \textit{smart} (the default), Isar
+proofs are only generated when no working one-line proof is available.
+
+\opdefault{compress}{int}{smart}
+Specifies the granularity of the generated Isar proofs if \textit{isar\_proofs}
+is explicitly enabled. A value of $n$ indicates that each Isar proof step should
+correspond to a group of up to $n$ consecutive proof steps in the ATP proof. If
+the option is set to \textit{smart} (the default), the compression factor is 10
+if the \textit{isar\_proofs} option is explicitly enabled; otherwise, it is
+$\infty$.
+
+\optrueonly{dont\_compress}
+Alias for ``\textit{compress} = 1''.
+
+\optrue{try0}{dont\_try0}
+Specifies whether standard proof methods such as \textit{auto} and
+\textit{blast} should be tried as alternatives to \textit{metis} in Isar proofs.
+The collection of methods is roughly the same as for the \textbf{try0} command.
+
+\opsmart{smt\_proofs}{no\_smt\_proofs}
+Specifies whether the \textit{smt} proof method should be tried in addition to
+Isabelle's other proof methods. If the option is set to \textit{smart} (the
+default), the \textit{smt} method is used for one-line proofs but not in Isar
+proofs.
+\end{enum}
+
+\subsection{Regression Testing}
+\label{regression-testing}
+
+\begin{enum}
+\opnodefault{expect}{string}
+Specifies the expected outcome, which must be one of the following:
+
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{some}:} Sledgehammer found a proof.
+\item[\labelitemi] \textbf{\textit{none}:} Sledgehammer found no proof.
+\item[\labelitemi] \textbf{\textit{timeout}:} Sledgehammer timed out.
+\item[\labelitemi] \textbf{\textit{unknown}:} Sledgehammer encountered some
+problem.
+\end{enum}
+
+Sledgehammer emits an error if the actual outcome differs from the expected outcome. This option is
+useful for regression testing.
+
+\nopagebreak
+{\small See also \textit{timeout} (\S\ref{timeouts}).}
+\end{enum}
+
+\subsection{Timeouts}
+\label{timeouts}
+
+\begin{enum}
+\opdefault{timeout}{float}{\upshape 30}
+Specifies the maximum number of seconds that the automatic provers should spend
+searching for a proof. This excludes problem preparation and is a soft limit.
+
+\opdefault{preplay\_timeout}{float}{\upshape 1}
+Specifies the maximum number of seconds that \textit{metis} or other proof
+methods should spend trying to ``preplay'' the found proof. If this option
+is set to 0, no preplaying takes place, and no timing information is displayed
+next to the suggested proof method calls.
+
+\nopagebreak
+{\small See also \textit{minimize} (\S\ref{mode-of-operation}).}
+
+\optrueonly{dont\_preplay}
+Alias for ``\textit{preplay\_timeout} = 0''.
+
+\end{enum}
+
+\let\em=\sl
+\bibliography{manual}{}
+\bibliographystyle{abbrv}
+
+\end{document}

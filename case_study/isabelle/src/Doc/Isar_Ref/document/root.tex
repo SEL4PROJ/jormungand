@@ -1,0 +1,100 @@
+\documentclass[12pt,a4paper,fleqn]{report}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{wasysym}
+\usepackage{eurosym}
+\usepackage[english]{babel}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{textcomp}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\let\intorig=\int  %iman.sty redefines \int
+\usepackage{iman,extra,isar,proof}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{railsetup}
+\usepackage{supertabular}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
+\title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
+\author{\emph{Makarius Wenzel} \\[3ex]
+  With Contributions by
+  Clemens Ballarin,
+  Stefan Berghofer, \\
+  Jasmin Blanchette,
+  Timothy Bourke,
+  Lukas Bulwahn, \\
+  Amine Chaieb,
+  Lucas Dixon,
+  Florian Haftmann, \\
+  Brian Huffman,
+  Lars Hupel,
+  Gerwin Klein, \\
+  Alexander Krauss,
+  Ond\v{r}ej Kun\v{c}ar,
+  Andreas Lochbihler, \\
+  Tobias Nipkow,
+  Lars Noschinski,
+  David von Oheimb, \\
+  Larry Paulson,
+  Sebastian Skalberg, \\
+  Christian Sternagel,
+  Dmitriy Traytel
+}
+
+\makeindex
+
+\chardef\charbackquote=`\`
+\newcommand{\backquote}{\mbox{\tt\charbackquote}}
+
+
+\begin{document}
+
+\maketitle 
+
+\pagenumbering{roman}
+\chapter*{Preface}
+\input{Preface.tex}
+\tableofcontents
+\listoffigures
+\clearfirst
+
+\part{Basic Concepts}
+\input{Synopsis.tex}
+\input{Framework.tex}
+\input{First_Order_Logic.tex}
+\part{General Language Elements}
+\input{Outer_Syntax.tex}
+\input{Document_Preparation.tex}
+\input{Spec.tex}
+\input{Proof.tex}
+\input{Proof_Script.tex}
+\input{Inner_Syntax.tex}
+\input{Generic.tex}
+\part{Isabelle/HOL}\label{part:hol}
+\input{HOL_Specific.tex}
+
+\part{Appendix}
+\appendix
+\input{Quick_Reference.tex}
+\let\int\intorig
+\input{Symbols.tex}
+
+\begingroup
+  \tocentry{\bibname}
+  \bibliographystyle{abbrv} \small\raggedright\frenchspacing
+  \bibliography{manual}
+\endgroup
+
+\tocentry{\indexname}
+\printindex
+
+\end{document}

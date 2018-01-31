@@ -1,0 +1,40 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+
+\oddsidemargin=4.6mm
+\evensidemargin=4.6mm
+\textwidth=150mm
+\topmargin=4.6mm
+\headheight=0mm
+\headsep=0mm
+\textheight=234mm
+
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb}
+\usepackage[only,bigsqcap]{stmaryrd}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics, with literal underscore
+\urlstyle{rm}
+\isabellestyle{literal}
+
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+\parindent 0pt\parskip 0.5ex
+
+\usepackage{supertabular}
+
+\begin{document}
+
+\title{What's in Main}
+\author{Tobias Nipkow}
+\date{\today}
+\maketitle
+
+\input{Main_Doc.tex}
+
+\end{document}

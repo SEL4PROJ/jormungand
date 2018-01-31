@@ -1,0 +1,89 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{supertabular}
+\usepackage{graphicx}
+\usepackage{iman,extra,isar}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{amssymb}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\hyphenation{Edinburgh}
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
+
+\isabellestyle{literal}
+\def\isastylett{\footnotesize\tt}
+
+\title{\includegraphics[scale=0.5]{isabelle_jedit} \\[4ex] Isabelle/jEdit}
+
+\author{\emph{Makarius Wenzel}}
+
+\makeindex
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  Isabelle/jEdit is a fully-featured Prover IDE, based on Isabelle/Scala and
+  the jEdit text editor. This document provides an overview of general
+  principles and its main IDE functionality.
+\end{abstract}
+
+\vspace*{2.5cm}
+
+\begin{quote}
+  {\small\em Isabelle's user interface is no advance over LCF's, which is
+  widely condemned as ``user-unfriendly'': hard to use, bewildering to
+  beginners. Hence the interest in proof editors, where a proof can be
+  constructed and modified rule-by-rule using windows, mouse, and menus. But
+  Edinburgh LCF was invented because real proofs require millions of
+  inferences. Sophisticated tools --- rules, tactics and tacticals, the
+  language ML, the logics themselves --- are hard to learn, yet they are
+  essential. We may demand a mouse, but we need better education and
+  training.}
+
+  Lawrence C. Paulson, ``Isabelle: The Next 700 Theorem Provers''
+\end{quote}
+
+
+\vspace*{2.5cm}
+
+
+\subsubsection*{Acknowledgements}
+
+Research and implementation of concepts around PIDE and Isabelle/jEdit has
+started in 2008 and was kindly supported by:
+\begin{itemize}
+\item TU M\"unchen \url{http://www.in.tum.de}
+\item BMBF \url{http://www.bmbf.de}
+\item Universit\'e Paris-Sud \url{http://www.u-psud.fr}
+\item Digiteo \url{http://www.digiteo.fr}
+\item ANR \url{http://www.agence-nationale-recherche.fr}
+\end{itemize}
+
+
+\pagenumbering{roman}
+\tableofcontents
+\listoffigures
+\clearfirst
+
+\input{JEdit.tex}
+
+\begingroup
+  \tocentry{\bibname}
+  \bibliographystyle{abbrv} \small\raggedright\frenchspacing
+  \bibliography{manual}
+\endgroup
+
+\tocentry{\indexname}
+\printindex
+
+\end{document}

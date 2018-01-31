@@ -1,0 +1,8 @@
+session Spec_Check in Spec_Check = Pure +
+  theories
+    Spec_Check
+    Examples
+
+session SML in SML = Pure +
+  theories
+    Examples

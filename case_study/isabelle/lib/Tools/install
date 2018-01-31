@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Author: Markus Wenzel, TU Muenchen
+#
+# DESCRIPTION: install standalone Isabelle executables
+
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] BINDIR"
+  echo
+  echo "  Options are:"
+  echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution"
+  echo "                 (default ISABELLE_HOME)"
+  echo
+  echo "  Install Isabelle executables with absolute references to the"
+  echo "  distribution directory."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+DISTDIR="$ISABELLE_HOME"
+BINDIR=""
+
+while getopts "d:" OPT
+do
+  case "$OPT" in
+    d)
+      DISTDIR="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ge 1 ] && { BINDIR="$1"; shift; }
+[ "$#" -ne 0 -o -z "$BINDIR" ] && usage
+
+
+## main
+
+echo "referring to distribution at \"$DISTDIR\""
+
+mkdir -p "$BINDIR" || fail "Bad directory: \"$BINDIR\""
+
+for NAME in isabelle isabelle_java isabelle_scala_script
+do
+  BIN="$BINDIR/$NAME"
+  DIST="$DISTDIR/bin/$NAME"
+  echo "installing $BIN"
+  rm -f "$BIN"
+  echo "#!/usr/bin/env bash" > "$BIN" || fail "Cannot write file: $BIN"
+  echo >> "$BIN"
+  echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
+  chmod +x "$BIN"
+done

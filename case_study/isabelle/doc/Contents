@@ -1,0 +1,25 @@
+Tutorials!
+  prog-prove      Programming and Proving in Isabelle/HOL
+  locales         Tutorial on Locales
+  classes         Tutorial on Type Classes
+  datatypes       Tutorial on (Co)datatype Definitions
+  functions       Tutorial on Function Definitions
+  corec           Tutorial on Nonprimitively Corecursive Definitions
+  codegen         Tutorial on Code Generation
+  nitpick         User's Guide to Nitpick
+  sledgehammer    User's Guide to Sledgehammer
+  eisbach         The Eisbach User Manual
+  sugar           LaTeX Sugar for Isabelle documents
+
+Reference Manuals!
+  main            What's in Main
+  isar-ref        The Isabelle/Isar Reference Manual
+  implementation  The Isabelle/Isar Implementation Manual
+  system          The Isabelle System Manual
+  jedit           Isabelle/jEdit
+
+Old Manuals
+  tutorial        Tutorial on Isabelle/HOL
+  intro           Old Introduction to Isabelle
+  logics          Isabelle's Logics: HOL and misc logics
+  logics-ZF       Isabelle's Logics: FOL and ZF

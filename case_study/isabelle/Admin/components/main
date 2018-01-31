@@ -1,0 +1,19 @@
+#main components for everyday use, without big impact on overall build time
+bash_process-1.2.1
+csdp-6.x
+cvc4-1.5pre-4
+e-1.8
+isabelle_fonts-20160830
+jdk-8u112
+jedit_build-20161024
+jfreechart-1.0.14-1
+jortho-1.0-2
+kodkodi-1.5.2
+nunchaku-0.3
+polyml-5.6-1
+scala-2.11.8
+ssh-java-20161009
+spass-3.8ds
+sqlite-jdbc-3.8.11.2
+xz-java-1.5
+z3-4.4.0pre

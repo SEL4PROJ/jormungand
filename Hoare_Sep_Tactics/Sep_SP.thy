@@ -1,19 +1,13 @@
 theory Sep_SP
-  imports
+ imports
  Sep_Forward
- "Det_Monad"
+ SP
 begin
 (*
-named_theorems sp
-named_theorems sp_pre
-
 declare hoare_strengthen_post[sp_pre]
 declare hoare_seq_ext[rotated, sp] 
 declare put_sp [sp] return_sp [sp] get_sp [sp] assert_sp [sp] *)
 
-
-
-(* method sp declares sp = (((rule sp)+), (rule sp_pre, rule sp, assumption?)?) *)
 named_theorems sep_sp
 
 ML {* 
@@ -34,10 +28,6 @@ lemma "(\<not>(P \<and>* (\<lambda>s. \<not> Q s)) s) = ((P \<leadsto>* Q) s)"
               "(\<not>((\<lambda>s. \<not> Q s) \<and>* P) s) = ((P \<leadsto>* Q) s)"                                                            
  apply (clarsimp simp: sep_coimpl_def pred_neg_def)
  by (clarsimp simp: sep_coimpl_def pred_neg_def sep_conj_commute)
-
-thm sp_pre
-
-
 
 
 lemma sep_conj_coimpl_precise: "(P \<and>* R) s \<Longrightarrow> precise P \<Longrightarrow> (P \<leadsto>* R) s" 

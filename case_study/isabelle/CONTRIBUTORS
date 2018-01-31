@@ -1,0 +1,780 @@
+For the purposes of the license agreement in the file COPYRIGHT, a
+'contributor' is anybody who is listed in this file (CONTRIBUTORS) or who is
+listed as an author in one of the source files of this Isabelle distribution.
+
+
+Contributions to Isabelle2016-1
+-------------------------------
+
+* December 2016: Ondřej Kunčar, TUM
+  Types_To_Sets: experimental extension of Higher-Order Logic to allow
+  translation of types to sets.
+
+* October 2016: Jasmin Blanchette
+  Integration of Nunchaku model finder.
+
+* October 2016: Jaime Mendizabal Roche, TUM
+  Ported remaining theories of session Old_Number_Theory to the new
+  Number_Theory and removed Old_Number_Theory.
+
+* September 2016: Sascha Boehme
+  Proof method "argo" based on SMT technology for a combination of
+  quantifier-free propositional logic, equality and linear real arithmetic
+
+* July 2016: Daniel Stuewe
+  Height-size proofs in HOL-Data_Structures.
+
+* July 2016: Manuel Eberl, TUM
+  Algebraic foundation for primes; generalization from nat to general
+  factorial rings.
+
+* June 2016: Andreas Lochbihler, ETH Zurich
+  Formalisation of discrete subprobability distributions.
+
+* June 2016: Florian Haftmann, TUM
+  Improvements to code generation: optional timing measurements, more succint
+  closures for static evaluation, less ambiguities concering Scala implicits.
+
+* May 2016: Manuel Eberl, TUM
+  Code generation for Probability Mass Functions.
+
+* March 2016: Florian Haftmann, TUM
+  Abstract factorial rings with unique factorization.
+
+* March 2016: Florian Haftmann, TUM
+  Reworking of the HOL char type as special case of a finite numeral type.
+
+* March 2016: Andreas Lochbihler, ETH Zurich
+  Reasoning support for monotonicity, continuity and admissibility in
+  chain-complete partial orders.
+
+* February - October 2016: Makarius Wenzel
+  Prover IDE improvements.
+  ML IDE improvements: bootstrap of Pure.
+  Isar language consolidation.
+  Notational modernization of HOL.
+  Tight Poly/ML integration.
+  More Isabelle/Scala system programming modules (e.g. SSH, Mercurial).
+
+* Winter 2016: Jasmin Blanchette, Inria & LORIA & MPII, Aymeric Bouzy,
+  Ecole polytechnique, Andreas Lochbihler, ETH Zurich, Andrei Popescu,
+  Middlesex University, and Dmitriy Traytel, ETH Zurich
+  'corec' command and friends.
+
+* January 2016: Florian Haftmann, TUM
+  Abolition of compound operators INFIMUM and SUPREMUM for complete lattices.
+
+
+Contributions to Isabelle2016
+-----------------------------
+
+* Winter 2016: Manuel Eberl, TUM
+  Support for real exponentiation ("powr") in the "approximation" method.
+  (This was removed in Isabelle 2015 due to a changed definition of "powr".)
+
+* Summer 2015 - Winter 2016: Lawrence C Paulson, Cambridge
+  General, homology form of Cauchy's integral theorem and supporting material
+  (ported from HOL Light).
+
+* Winter 2015/16: Gerwin Klein, NICTA
+  New print_record command.
+
+* May - December 2015: Makarius Wenzel
+  Prover IDE improvements.
+  More Isar language elements.
+  Document language refinements.
+  Poly/ML debugger integration.
+  Improved multi-platform and multi-architecture support.
+
+* Winter 2015: Manuel Eberl, TUM
+  The radius of convergence of power series and various summability tests.
+  Harmonic numbers and the Euler-Mascheroni constant.
+  The Generalised Binomial Theorem.
+  The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and their
+  most important properties.
+
+* Autumn 2015: Manuel Eberl, TUM
+  Proper definition of division (with remainder) for formal power series;
+  Euclidean Ring and GCD instance for formal power series.
+
+* Autumn 2015: Florian Haftmann, TUM
+  Rewrite definitions for global interpretations and sublocale declarations.
+
+* Autumn 2015: Andreas Lochbihler
+  Bourbaki-Witt fixpoint theorem for increasing functions on chain-complete
+  partial orders.
+
+* Autumn 2015: Chaitanya Mangla, Lawrence C Paulson, and Manuel Eberl
+  A large number of additional binomial identities.
+
+* Summer 2015: Daniel Matichuk, NICTA and Makarius Wenzel
+  Isar subgoal command for proof structure within unstructured proof scripts.
+
+* Summer 2015: Florian Haftmann, TUM
+  Generic partial division in rings as inverse operation of multiplication.
+
+* Summer 2015: Manuel Eberl and Florian Haftmann, TUM
+  Type class hierarchy with common algebraic notions of integral (semi)domains
+  like units, associated elements and normalization wrt. units.
+
+* Summer 2015: Florian Haftmann, TUM
+  Fundamentals of abstract type class for factorial rings.
+
+* Summer 2015: Julian Biendarra, TUM and Dmitriy Traytel, ETH Zurich
+  Command to lift a BNF structure on the raw type to the abstract type for
+  typedefs.
+
+* Summer 2014: Jeremy Avigad, Luke Serafin, CMU, and Johannes Hölzl, TUM
+  Proof of the central limit theorem: includes weak convergence,
+  characteristic functions, and Levy's uniqueness and continuity theorem.
+
+
+Contributions to Isabelle2015
+-----------------------------
+
+* 2014/2015: Daniel Matichuk, Toby Murray, NICTA and Makarius Wenzel
+  The Eisbach proof method language and "match" method.
+
+* Winter 2014 and Spring 2015: Ondrej Kuncar, TUM
+  Extension of lift_definition to execute lifted functions that have as a
+  return type a datatype containing a subtype.
+
+* March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII,
+  and Dmitriy Traytel, TUM
+  More multiset theorems, syntax, and operations.
+
+* December 2014: Johannes Hölzl, Manuel Eberl, Sudeep Kanav, TUM, and
+  Jeremy Avigad, Luke Serafin, CMU
+  Various integration theorems: mostly integration on intervals and
+  substitution.
+
+* September 2014: Florian Haftmann, TUM
+  Lexicographic order on functions and
+  sum/product over function bodies.
+
+* August 2014: Andreas Lochbihler, ETH Zurich
+  Test infrastructure for executing generated code in target languages.
+
+* August 2014: Manuel Eberl, TUM
+  Generic euclidean algorithms for GCD et al.
+
+
+Contributions to Isabelle2014
+-----------------------------
+
+* July 2014: Thomas Sewell, NICTA
+  Preserve equality hypotheses in "clarify" and friends. New
+  "hypsubst_thin" method configuration option.
+
+* Summer 2014: Florian Haftmann, TUM
+  Consolidation and generalization of facts concerning (abelian)
+  semigroups and monoids, particularly products (resp. sums) on
+  finite sets.
+
+* Summer 2014: Mathias Fleury, ENS Rennes, and Albert Steckermeier, TUM
+  Work on exotic automatic theorem provers for Sledgehammer (LEO-II,
+  veriT, Waldmeister, etc.).
+
+* June 2014: Florian Haftmann, TUM
+  Internal reorganisation of the local theory / named target stack.
+
+* June 2014: Sudeep Kanav, TUM, Jeremy Avigad, CMU, and Johannes Hölzl, TUM
+  Various properties of exponentially, Erlang, and normal distributed
+  random variables.
+
+* May 2014: Cezary Kaliszyk, University of Innsbruck, and
+  Jasmin Blanchette, TUM
+  SML-based engines for MaSh.
+
+* March 2014: René Thiemann
+  Improved code generation for multisets.
+
+* February 2014: Florian Haftmann, TUM
+  Permanent interpretation inside theory, locale and class targets
+  with mixin definitions.
+
+* Spring 2014: Lawrence C Paulson, Cambridge
+  Theory Complex_Basic_Analysis. Tidying up Number_Theory vs Old_Number_Theory
+
+* Winter 2013 and Spring 2014: Ondrej Kuncar, TUM
+  Various improvements to Lifting/Transfer, integration with the BNF package.
+
+* Winter 2013 and Spring 2014: Makarius Wenzel, Université Paris-Sud / LRI
+  Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
+
+* Fall 2013 and Winter 2014: Martin Desharnais, Lorenz Panny,
+  Dmitriy Traytel, and Jasmin Blanchette, TUM
+  Various improvements to the BNF-based (co)datatype package,
+  including a more polished "primcorec" command, optimizations, and
+  integration in the "HOL" session.
+
+* Winter/Spring 2014: Sascha Boehme, QAware GmbH, and
+  Jasmin Blanchette, TUM
+  "SMT2" module and "smt2" proof method, based on SMT-LIB 2 and
+  Z3 4.3.
+
+* January 2014: Lars Hupel, TUM
+  An improved, interactive simplifier trace with integration into the
+  Isabelle/jEdit Prover IDE.
+
+* December 2013: Florian Haftmann, TUM
+  Consolidation of abstract interpretations concerning min and max.
+
+* November 2013: Florian Haftmann, TUM
+  Abolition of negative numeral literals in the logic.
+
+
+Contributions to Isabelle2013-1
+-------------------------------
+
+* September 2013: Lars Noschinski, TUM
+  Conversion between function definitions as list of equations and
+  case expressions in HOL.
+  New library Simps_Case_Conv with commands case_of_simps,
+  simps_of_case.
+
+* September 2013: Nik Sultana, University of Cambridge
+  Improvements to HOL/TPTP parser and import facilities.
+
+* September 2013: Johannes Hölzl and Dmitriy Traytel, TUM
+  New "coinduction" method (residing in HOL-BNF) to avoid boilerplate.
+
+* Summer 2013: Makarius Wenzel, Université Paris-Sud / LRI
+  Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
+
+* Summer 2013: Manuel Eberl, TUM
+  Generation of elimination rules in the function package.
+  New command "fun_cases".
+
+* Summer 2013: Christian Sternagel, JAIST
+  Improved support for ad hoc overloading of constants, including
+  documentation and examples.
+
+* Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
+  Jasmin Blanchette, TUM
+  Various improvements to the BNF-based (co)datatype package, including
+  "primrec_new" and "primcorec" commands and a compatibility layer.
+
+* Spring and Summer 2013: Ondrej Kuncar, TUM
+  Various improvements of Lifting and Transfer packages.
+
+* Spring 2013: Brian Huffman, Galois Inc.
+  Improvements of the Transfer package.
+
+* Summer 2013: Daniel Kühlwein, ICIS, Radboud University Nijmegen
+  Jasmin Blanchette, TUM
+  Various improvements to MaSh, including a server mode.
+
+* First half of 2013: Steffen Smolka, TUM
+  Further improvements to Sledgehammer's Isar proof generator.
+
+* May 2013: Florian Haftmann, TUM
+  Ephemeral interpretation in local theories.
+
+* May 2013: Lukas Bulwahn and Nicolai Schaffroth, TUM
+  Spec_Check: A Quickcheck tool for Isabelle/ML.
+
+* April 2013: Stefan Berghofer, secunet Security Networks AG
+  Dmitriy Traytel, TUM
+  Makarius Wenzel, Université Paris-Sud / LRI
+  Case translations as a separate check phase independent of the
+  datatype package.
+
+* March 2013: Florian Haftmann, TUM
+  Reform of "big operators" on sets.
+
+* March 2013: Florian Haftmann, TUM
+  Algebraic locale hierarchy for orderings and (semi)lattices.
+
+* February 2013: Florian Haftmann, TUM
+  Reworking and consolidation of code generation for target language
+  numerals.
+
+* February 2013: Florian Haftmann, TUM
+  Sieve of Eratosthenes.
+
+
+Contributions to Isabelle2013
+-----------------------------
+
+* 2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
+
+* Fall 2012: Daniel Kühlwein, ICIS, Radboud University Nijmegen
+  Jasmin Blanchette, TUM
+  Implemented Machine Learning for Sledgehammer (MaSh).
+
+* Fall 2012: Steffen Smolka, TUM
+  Various improvements to Sledgehammer's Isar proof generator,
+  including a smart type annotation algorithm and proof shrinking.
+
+* December 2012: Alessandro Coglio, Kestrel
+  Contributions to HOL's Lattice library.
+
+* November 2012: Fabian Immler, TUM
+  "Symbols" dockable for Isabelle/jEdit.
+
+* November 2012: Fabian Immler, TUM
+  Proof of the Daniell-Kolmogorov theorem: the existence of the limit
+  of projective families.
+
+* October 2012: Andreas Lochbihler, KIT
+  Efficient construction of red-black trees from sorted associative
+  lists.
+
+* September 2012: Florian Haftmann, TUM
+  Lattice instances for type option.
+
+* September 2012: Christian Sternagel, JAIST
+  Consolidated HOL/Library (theories: Prefix_Order, Sublist, and
+  Sublist_Order) w.r.t. prefixes, suffixes, and embedding on lists.
+
+* August 2012: Dmitriy Traytel, Andrei Popescu, Jasmin Blanchette, TUM
+  New BNF-based (co)datatype package.
+
+* August 2012: Andrei Popescu and Dmitriy Traytel, TUM
+  Theories of ordinals and cardinals.
+
+* July 2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Advanced support for Isabelle sessions and build management, notably
+  "isabelle build".
+
+* June 2012: Felix Kuperjans, Lukas Bulwahn, TUM and Rafal Kolanski, NICTA
+  Simproc for rewriting set comprehensions into pointfree expressions.
+
+* May 2012: Andreas Lochbihler, KIT
+  Theory of almost everywhere constant functions.
+
+* 2010-2012: Markus Kaiser and Lukas Bulwahn, TUM
+  Graphview in Scala/Swing.
+
+
+Contributions to Isabelle2012
+-----------------------------
+
+* April 2012: Johannes Hölzl, TUM
+  Probability: Introduced type to represent measures instead of
+  locales.
+
+* April 2012: Johannes Hölzl, Fabian Immler, TUM
+  Float: Moved to Dyadic rationals to represent floating point numers.
+
+* April 2012: Thomas Sewell, NICTA and
+  2010: Sascha Boehme, TUM
+  Theory HOL/Word/WordBitwise: logic/circuit expansion of bitvector
+  equalities/inequalities.
+
+* March 2012: Christian Sternagel, JAIST
+  Consolidated theory of relation composition.
+
+* March 2012: Nik Sultana, University of Cambridge
+  HOL/TPTP parser and import facilities.
+
+* March 2012: Cezary Kaliszyk, University of Innsbruck and
+  Alexander Krauss, QAware GmbH
+  Faster and more scalable Import mechanism for HOL Light proofs.
+
+* January 2012: Florian Haftmann, TUM, et al.
+  (Re-)Introduction of the "set" type constructor.
+
+* 2012: Ondrej Kuncar, TUM
+  New package Lifting, various improvements and refinements to the
+  Quotient package.
+
+* 2011/2012: Jasmin Blanchette, TUM
+  Various improvements to Sledgehammer, notably: tighter integration
+  with SPASS, support for more provers (Alt-Ergo, iProver,
+  iProver-Eq).
+
+* 2011/2012: Makarius Wenzel, Université Paris-Sud / LRI
+  Various refinements of local theory infrastructure.
+  Improvements of Isabelle/Scala layer and Isabelle/jEdit Prover IDE.
+
+
+Contributions to Isabelle2011-1
+-------------------------------
+
+* September 2011: Peter Gammie
+  Theory HOL/Library/Saturated: numbers with saturated arithmetic.
+
+* August 2011: Florian Haftmann, Johannes Hölzl and Lars Noschinski, TUM
+  Refined theory on complete lattices.
+
+* August 2011: Brian Huffman, Portland State University
+  Miscellaneous cleanup of Complex_Main and Multivariate_Analysis.
+
+* June 2011: Brian Huffman, Portland State University
+  Proof method "countable_datatype" for theory Library/Countable.
+
+* 2011: Jasmin Blanchette, TUM
+  Various improvements to Sledgehammer, notably: use of sound
+  translations, support for more provers (Waldmeister, LEO-II,
+  Satallax). Further development of Nitpick and 'try' command.
+
+* 2011: Andreas Lochbihler, Karlsruhe Institute of Technology
+  Theory HOL/Library/Cset_Monad allows do notation for computable sets
+  (cset) via the generic monad ad-hoc overloading facility.
+
+* 2011: Johannes Hölzl, Armin Heller, TUM and
+  Bogdan Grechuk, University of Edinburgh
+  Theory HOL/Library/Extended_Reals: real numbers extended with plus
+  and minus infinity.
+
+* 2011: Makarius Wenzel, Université Paris-Sud / LRI
+  Various building blocks for Isabelle/Scala layer and Isabelle/jEdit
+  Prover IDE.
+
+
+Contributions to Isabelle2011
+-----------------------------
+
+* January 2011: Stefan Berghofer, secunet Security Networks AG
+  HOL-SPARK: an interactive prover back-end for SPARK.
+
+* October 2010: Bogdan Grechuk, University of Edinburgh
+  Extended convex analysis in Multivariate Analysis.
+
+* October 2010: Dmitriy Traytel, TUM
+  Coercive subtyping via subtype constraints.
+
+* October 2010: Alexander Krauss, TUM
+  Command partial_function for function definitions based on complete
+  partial orders in HOL.
+
+* September 2010: Florian Haftmann, TUM
+  Refined concepts for evaluation, i.e., normalization of terms using
+  different techniques.
+
+* September 2010: Florian Haftmann, TUM
+  Code generation for Scala.
+
+* August 2010: Johannes Hoelzl, Armin Heller, and Robert Himmelmann, TUM
+  Improved Probability theory in HOL.
+
+* July 2010: Florian Haftmann, TUM
+  Reworking and extension of the Imperative HOL framework.
+
+* July 2010: Alexander Krauss, TUM and Christian Sternagel, University
+    of Innsbruck
+  Ad-hoc overloading. Generic do notation for monads.
+
+
+Contributions to Isabelle2009-2
+-------------------------------
+
+* 2009/2010: Stefan Berghofer, Alexander Krauss, and Andreas Schropp, TUM,
+  Makarius Wenzel, TUM / LRI
+  Elimination of type classes from proof terms.
+
+* April 2010: Florian Haftmann, TUM
+  Reorganization of abstract algebra type classes.
+
+* April 2010: Florian Haftmann, TUM
+  Code generation for data representations involving invariants;
+  various collections avaiable in theories Fset, Dlist, RBT,
+  Mapping and AssocList.
+
+* March 2010: Sascha Boehme, TUM
+  Efficient SHA1 library for Poly/ML.
+
+* February 2010: Cezary Kaliszyk and Christian Urban, TUM
+  Quotient type package for Isabelle/HOL.
+
+
+Contributions to Isabelle2009-1
+-------------------------------
+
+* November 2009, Brian Huffman, PSU
+  New definitional domain package for HOLCF.
+
+* November 2009: Robert Himmelmann, TUM
+  Derivation and Brouwer's fixpoint theorem in Multivariate Analysis.
+
+* November 2009: Stefan Berghofer and Lukas Bulwahn, TUM
+  A tabled implementation of the reflexive transitive closure.
+
+* November 2009: Lukas Bulwahn, TUM
+  Predicate Compiler: a compiler for inductive predicates to
+  equational specifications.
+
+* November 2009: Sascha Boehme, TUM and Burkhart Wolff, LRI Paris
+  HOL-Boogie: an interactive prover back-end for Boogie and VCC.
+
+* October 2009: Jasmin Blanchette, TUM
+  Nitpick: yet another counterexample generator for Isabelle/HOL.
+
+* October 2009: Sascha Boehme, TUM
+  Extension of SMT method: proof-reconstruction for the SMT solver Z3.
+
+* October 2009: Florian Haftmann, TUM
+  Refinement of parts of the HOL datatype package.
+
+* October 2009: Florian Haftmann, TUM
+  Generic term styles for term antiquotations.
+
+* September 2009: Thomas Sewell, NICTA
+  More efficient HOL/record implementation.
+
+* September 2009: Sascha Boehme, TUM
+  SMT method using external SMT solvers.
+
+* September 2009: Florian Haftmann, TUM
+  Refinement of sets and lattices.
+
+* July 2009: Jeremy Avigad and Amine Chaieb
+  New number theory.
+
+* July 2009: Philipp Meyer, TUM
+  HOL/Library/Sum_Of_Squares: functionality to call a remote csdp
+  prover.
+
+* July 2009: Florian Haftmann, TUM
+  New quickcheck implementation using new code generator.
+
+* July 2009: Florian Haftmann, TUM
+  HOL/Library/Fset: an explicit type of sets; finite sets ready to use
+  for code generation.
+
+* June 2009: Florian Haftmann, TUM
+  HOL/Library/Tree: search trees implementing mappings, ready to use
+  for code generation.
+
+* March 2009: Philipp Meyer, TUM
+  Minimization tool for results from Sledgehammer.
+
+
+Contributions to Isabelle2009
+-----------------------------
+
+* March 2009: Robert Himmelmann, TUM and Amine Chaieb, University of
+  Cambridge
+  Elementary topology in Euclidean space.
+
+* March 2009: Johannes Hoelzl, TUM
+  Method "approximation", which proves real valued inequalities by
+  computation.
+
+* February 2009: Filip Maric, Univ. of Belgrade
+  A Serbian theory.
+
+* February 2009: Jasmin Christian Blanchette, TUM
+  Misc cleanup of HOL/refute.
+
+* February 2009: Timothy Bourke, NICTA
+  New find_consts command.
+
+* February 2009: Timothy Bourke, NICTA
+  "solves" criterion for find_theorems and auto_solve option
+
+* December 2008: Clemens Ballarin, TUM
+  New locale implementation.
+
+* December 2008: Armin Heller, TUM and Alexander Krauss, TUM
+  Method "sizechange" for advanced termination proofs.
+
+* November 2008: Timothy Bourke, NICTA
+  Performance improvement (factor 50) for find_theorems.
+
+* 2008: Florian Haftmann, TUM
+  Various extensions and restructurings in HOL, improvements
+  in evaluation mechanisms, new module binding.ML for name bindings.
+
+* October 2008: Fabian Immler, TUM
+  ATP manager for Sledgehammer, based on ML threads instead of Posix
+  processes.  Additional ATP wrappers, including remote SystemOnTPTP
+  services.
+
+* September 2008: Stefan Berghofer, TUM and Marc Bezem, Univ. Bergen
+  Prover for coherent logic.
+
+* August 2008: Fabian Immler, TUM
+  Vampire wrapper script for remote SystemOnTPTP service.
+
+
+Contributions to Isabelle2008
+-----------------------------
+
+* 2007/2008:
+  Alexander Krauss, TUM and Florian Haftmann, TUM and Stefan Berghofer, TUM
+  HOL library improvements.
+
+* 2007/2008: Brian Huffman, PSU
+  HOLCF library improvements.
+
+* 2007/2008: Stefan Berghofer, TUM
+  HOL-Nominal package improvements.
+
+* March 2008: Markus Reiter, TUM
+  HOL/Library/RBT: red-black trees.
+
+* February 2008: Alexander Krauss, TUM and Florian Haftmann, TUM and
+  Lukas Bulwahn, TUM and John Matthews, Galois:
+  HOL/Library/Imperative_HOL: Haskell-style imperative data structures
+  for HOL.
+
+* December 2007: Norbert Schirmer, Uni Saarbruecken
+  Misc improvements of record package in HOL.
+
+* December 2007: Florian Haftmann, TUM
+  Overloading and class instantiation target.
+
+* December 2007: Florian Haftmann, TUM
+  New version of primrec package for local theories.
+
+* December 2007: Alexander Krauss, TUM
+  Method "induction_scheme" in HOL.
+
+* November 2007: Peter Lammich, Uni Muenster
+  HOL-Lattice: some more lemmas.
+
+
+Contributions to Isabelle2007
+-----------------------------
+
+* October 2007: Norbert Schirmer, TUM / Uni Saarbruecken
+  State Spaces: The Locale Way (in HOL).
+
+* October 2007: Mark A. Hillebrand, DFKI
+  Robust sub/superscripts in LaTeX document output.
+
+* August 2007: Jeremy Dawson, NICTA and Paul Graunke, Galois and Brian
+    Huffman, PSU and Gerwin Klein, NICTA and John Matthews, Galois
+  HOL-Word: a library for fixed-size machine words in Isabelle.
+
+* August 2007: Brian Huffman, PSU
+  HOL/Library/Boolean_Algebra and HOL/Library/Numeral_Type.
+
+* June 2007: Amine Chaieb, TUM
+  Semiring normalization and Groebner Bases.
+  Support for dense linear orders.
+
+* June 2007: Joe Hurd, Oxford
+  Metis theorem-prover.
+
+* 2007: Kong W. Susanto, Cambridge
+  HOL: Metis prover integration.
+
+* 2007: Stefan Berghofer, TUM
+  HOL: inductive predicates and sets.
+
+* 2007: Norbert Schirmer, TUM
+  HOL/record: misc improvements.
+
+* 2006/2007: Alexander Krauss, TUM
+  HOL: function package and related theories on termination.
+
+* 2006/2007: Florian Haftmann, TUM
+  Pure: generic code generator framework.
+  Pure: class package.
+  HOL: theory reorganization, code generator setup.
+
+* 2006/2007: Christian Urban, TUM and Stefan Berghofer, TUM and
+    Julien Narboux, TUM
+  HOL/Nominal package and related tools.
+
+* November 2006: Lukas Bulwahn, TUM
+  HOL: method "lexicographic_order" for function package.
+
+* October 2006: Stefan Hohe, TUM
+  HOL-Algebra: ideals and quotients over rings.
+
+* August 2006: Amine Chaieb, TUM
+  Experimental support for generic reflection and reification in HOL.
+
+* July 2006: Rafal Kolanski, NICTA
+  Hex (0xFF) and binary (0b1011) numerals.
+
+* May 2006: Klaus Aehlig, LMU
+  Command 'normal_form': normalization by evaluation.
+
+* May 2006: Amine Chaieb, TUM
+  HOL-Complex: Ferrante and Rackoff Algorithm for linear real
+  arithmetic.
+
+* February 2006: Benjamin Porter, NICTA
+  HOL and HOL-Complex: generalised mean value theorem, continuum is
+  not denumerable, harmonic and arithmetic series, and denumerability
+  of rationals.
+
+* October 2005: Martin Wildmoser, TUM
+  Sketch for Isar 'guess' element.
+
+
+Contributions to Isabelle2005
+-----------------------------
+
+* September 2005: Lukas Bulwahn and Bernhard Haeupler, TUM
+  HOL-Complex: Formalization of Taylor series.
+
+* September 2005: Stephan Merz, Alwen Tiu, QSL Loria
+  Components for SAT solver method using zChaff.
+
+* September 2005: Ning Zhang and Christian Urban, LMU Munich
+  A Chinese theory.
+
+* September 2005: Bernhard Haeupler, TUM
+  Method comm_ring for proving equalities in commutative rings.
+
+* July/August 2005: Jeremy Avigad, Carnegie Mellon University
+  Various improvements of the HOL and HOL-Complex library.
+
+* July 2005: Florian Zuleger, Johannes Hoelzl, and Simon Funke, TUM
+  Some structured proofs about completeness of real numbers.
+
+* May 2005: Rafal Kolanski and Gerwin Klein, NICTA
+  Improved retrieval of facts from theory/proof context.
+
+* February 2005: Lucas Dixon, University of Edinburgh
+  Improved subst method.
+
+* 2005: Brian Huffman, OGI
+  Various improvements of HOLCF.
+  Some improvements of the HOL-Complex library.
+
+* 2005: Claire Quigley and Jia Meng, University of Cambridge
+  Some support for asynchronous communication with external provers
+  (experimental).
+
+* 2005: Florian Haftmann, TUM
+  Contributions to document 'sugar'.
+  Various ML combinators, notably linear functional transformations.
+  Some cleanup of ML legacy.
+  Additional antiquotations.
+  Improved Isabelle web site.
+
+* 2004/2005: David Aspinall, University of Edinburgh
+  Various elements of XML and PGIP based communication with user
+  interfaces (experimental).
+
+* 2004/2005: Gerwin Klein, NICTA
+  Contributions to document 'sugar'.
+  Improved Isabelle web site.
+  Improved HTML presentation of theories.
+
+* 2004/2005: Clemens Ballarin, TUM
+  Provers: tools for transitive relations and quasi orders.
+  Improved version of locales, notably interpretation of locales.
+  Improved version of HOL-Algebra.
+
+* 2004/2005: Amine Chaieb, TUM
+  Improved version of HOL presburger method.
+
+* 2004/2005: Steven Obua, TUM
+  Improved version of HOL/Import, support for HOL-Light.
+  Improved version of HOL-Complex-Matrix.
+  Pure/defs: more sophisticated checks on well-formedness of overloading.
+  Pure/Tools: an experimental evaluator for lambda terms.
+
+* 2004/2005: Norbert Schirmer, TUM
+  Contributions to document 'sugar'.
+  Improved version of HOL/record.
+
+* 2004/2005: Sebastian Skalberg, TUM
+  Improved version of HOL/Import.
+  Some internal ML reorganizations.
+
+* 2004/2005: Tjark Weber, TUM
+  SAT solver method using zChaff.
+  Improved version of HOL/refute.
+
+:maxLineLen=78:

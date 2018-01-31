@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke Scala within the Isabelle environment
+
+isabelle_admin_build jars || exit $?
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+declare -a SCALA_ARGS=()
+for ARG in "${JAVA_ARGS[@]}"
+do
+  SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
+done
+
+isabelle_scala scala "${SCALA_ARGS[@]}" \
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

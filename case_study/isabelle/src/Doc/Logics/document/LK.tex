@@ -1,0 +1,711 @@
+\chapter{First-Order Sequent Calculus}
+\index{sequent calculus|(}
+
+The theory~\thydx{LK} implements classical first-order logic through Gentzen's
+sequent calculus (see Gallier~\cite{gallier86} or Takeuti~\cite{takeuti87}).
+Resembling the method of semantic tableaux, the calculus is well suited for
+backwards proof.  Assertions have the form \(\Gamma\turn \Delta\), where
+\(\Gamma\) and \(\Delta\) are lists of formulae.  Associative unification,
+simulated by higher-order unification, handles lists
+(\S\ref{sec:assoc-unification} presents details, if you are interested).
+
+The logic is many-sorted, using Isabelle's type classes.  The class of
+first-order terms is called \cldx{term}.  No types of individuals are
+provided, but extensions can define types such as {\tt nat::term} and type
+constructors such as {\tt list::(term)term}.  Below, the type variable
+$\alpha$ ranges over class {\tt term}; the equality symbol and quantifiers
+are polymorphic (many-sorted).  The type of formulae is~\tydx{o}, which
+belongs to class {\tt logic}.
+
+LK implements a classical logic theorem prover that is nearly as powerful as
+the generic classical reasoner.  The simplifier is now available too.
+
+To work in LK, start up Isabelle specifying  \texttt{Sequents} as the
+object-logic.  Once in Isabelle, change the context to theory \texttt{LK.thy}:
+\begin{ttbox}
+isabelle Sequents
+context LK.thy;
+\end{ttbox}
+Modal logic and linear logic are also available, but unfortunately they are
+not documented.
+
+
+\begin{figure} 
+\begin{center}
+\begin{tabular}{rrr} 
+  \it name      &\it meta-type          & \it description       \\ 
+  \cdx{Trueprop}& $[sobj\To sobj, sobj\To sobj]\To prop$ & coercion to $prop$\\
+  \cdx{Seqof}   & $[o,sobj]\To sobj$    & singleton sequence    \\
+  \cdx{Not}     & $o\To o$              & negation ($\neg$)     \\
+  \cdx{True}    & $o$                   & tautology ($\top$)    \\
+  \cdx{False}   & $o$                   & absurdity ($\bot$)
+\end{tabular}
+\end{center}
+\subcaption{Constants}
+
+\begin{center}
+\begin{tabular}{llrrr} 
+  \it symbol &\it name     &\it meta-type & \it priority & \it description \\
+  \sdx{ALL}  & \cdx{All}  & $(\alpha\To o)\To o$ & 10 & 
+        universal quantifier ($\forall$) \\
+  \sdx{EX}   & \cdx{Ex}   & $(\alpha\To o)\To o$ & 10 & 
+        existential quantifier ($\exists$) \\
+  \sdx{THE} & \cdx{The}  & $(\alpha\To o)\To \alpha$ & 10 & 
+        definite description ($\iota$)
+\end{tabular}
+\end{center}
+\subcaption{Binders} 
+
+\begin{center}
+\index{*"= symbol}
+\index{&@{\tt\&} symbol}
+\index{"!@{\tt\char124} symbol} %\char124 is vertical bar. We use ! because | stopped working
+\index{*"-"-"> symbol}
+\index{*"<"-"> symbol}
+\begin{tabular}{rrrr} 
+    \it symbol  & \it meta-type         & \it priority & \it description \\ 
+    \tt = &     $[\alpha,\alpha]\To o$  & Left 50 & equality ($=$) \\
+    \tt \& &    $[o,o]\To o$ & Right 35 & conjunction ($\conj$) \\
+    \tt | &     $[o,o]\To o$ & Right 30 & disjunction ($\disj$) \\
+    \tt --> &   $[o,o]\To o$ & Right 25 & implication ($\imp$) \\
+    \tt <-> &   $[o,o]\To o$ & Right 25 & biconditional ($\bimp$) 
+\end{tabular}
+\end{center}
+\subcaption{Infixes}
+
+\begin{center}
+\begin{tabular}{rrr} 
+  \it external          & \it internal  & \it description \\ 
+  \tt $\Gamma$ |- $\Delta$  &  \tt Trueprop($\Gamma$, $\Delta$) &
+        sequent $\Gamma\turn \Delta$ 
+\end{tabular}
+\end{center}
+\subcaption{Translations} 
+\caption{Syntax of {\tt LK}} \label{lk-syntax}
+\end{figure}
+
+
+\begin{figure} 
+\dquotes
+\[\begin{array}{rcl}
+    prop & = & sequence " |- " sequence 
+\\[2ex]
+sequence & = & elem \quad (", " elem)^* \\
+         & | & empty 
+\\[2ex]
+    elem & = & "\$ " term \\
+         & | & formula  \\
+         & | & "<<" sequence ">>" 
+\\[2ex]
+ formula & = & \hbox{expression of type~$o$} \\
+         & | & term " = " term \\
+         & | & "\ttilde\ " formula \\
+         & | & formula " \& " formula \\
+         & | & formula " | " formula \\
+         & | & formula " --> " formula \\
+         & | & formula " <-> " formula \\
+         & | & "ALL~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula \\
+         & | & "THE~" id~     " . " formula
+  \end{array}
+\]
+\caption{Grammar of {\tt LK}} \label{lk-grammar}
+\end{figure}
+
+
+
+
+\begin{figure} 
+\begin{ttbox}
+\tdx{basic}       $H, P, $G |- $E, P, $F
+
+\tdx{contRS}      $H |- $E, $S, $S, $F ==> $H |- $E, $S, $F
+\tdx{contLS}      $H, $S, $S, $G |- $E ==> $H, $S, $G |- $E
+
+\tdx{thinRS}      $H |- $E, $F ==> $H |- $E, $S, $F
+\tdx{thinLS}      $H, $G |- $E ==> $H, $S, $G |- $E
+
+\tdx{cut}         [| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E
+\subcaption{Structural rules}
+
+\tdx{refl}        $H |- $E, a=a, $F
+\tdx{subst}       $H(a), $G(a) |- $E(a) ==> $H(b), a=b, $G(b) |- $E(b)
+\subcaption{Equality rules}
+\end{ttbox}
+
+\caption{Basic Rules of {\tt LK}}  \label{lk-basic-rules}
+\end{figure}
+
+\begin{figure} 
+\begin{ttbox}
+\tdx{True_def}    True  == False-->False
+\tdx{iff_def}     P<->Q == (P-->Q) & (Q-->P)
+
+\tdx{conjR}   [| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F
+\tdx{conjL}   $H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E
+
+\tdx{disjR}   $H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F
+\tdx{disjL}   [| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E
+            
+\tdx{impR}    $H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F
+\tdx{impL}    [| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E
+            
+\tdx{notR}    $H, P |- $E, $F ==> $H |- $E, ~P, $F
+\tdx{notL}    $H, $G |- $E, P ==> $H, ~P, $G |- $E
+
+\tdx{FalseL}  $H, False, $G |- $E
+
+\tdx{allR}    (!!x. $H|- $E, P(x), $F) ==> $H|- $E, ALL x. P(x), $F
+\tdx{allL}    $H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G|- $E
+            
+\tdx{exR}     $H|- $E, P(x), $F, EX x. P(x) ==> $H|- $E, EX x. P(x), $F
+\tdx{exL}     (!!x. $H, P(x), $G|- $E) ==> $H, EX x. P(x), $G|- $E
+
+\tdx{The}     [| $H |- $E, P(a), $F;  !!x. $H, P(x) |- $E, x=a, $F |] ==>
+        $H |- $E, P(THE x. P(x)), $F
+\subcaption{Logical rules}
+\end{ttbox}
+
+\caption{Rules of {\tt LK}}  \label{lk-rules}
+\end{figure}
+
+
+\section{Syntax and rules of inference}
+\index{*sobj type}
+
+Figure~\ref{lk-syntax} gives the syntax for {\tt LK}, which is complicated
+by the representation of sequents.  Type $sobj\To sobj$ represents a list
+of formulae.
+
+The \textbf{definite description} operator~$\iota x. P[x]$ stands for some~$a$
+satisfying~$P[a]$, if one exists and is unique.  Since all terms in LK denote
+something, a description is always meaningful, but we do not know its value
+unless $P[x]$ defines it uniquely.  The Isabelle notation is \hbox{\tt THE
+  $x$.\ $P[x]$}.  The corresponding rule (Fig.\ts\ref{lk-rules}) does not
+entail the Axiom of Choice because it requires uniqueness.
+
+Conditional expressions are available with the notation 
+\[ \dquotes
+   "if"~formula~"then"~term~"else"~term. \]
+
+Figure~\ref{lk-grammar} presents the grammar of LK.  Traditionally,
+\(\Gamma\) and \(\Delta\) are meta-variables for sequences.  In Isabelle's
+notation, the prefix~\verb|$| on a term makes it range over sequences.
+In a sequent, anything not prefixed by \verb|$| is taken as a formula.
+
+The notation \texttt{<<$sequence$>>} stands for a sequence of formul\ae{}.
+For example, you can declare the constant \texttt{imps} to consist of two
+implications: 
+\begin{ttbox}
+consts     P,Q,R :: o
+constdefs imps :: seq'=>seq'
+         "imps == <<P --> Q, Q --> R>>"
+\end{ttbox}
+Then you can use it in axioms and goals, for example
+\begin{ttbox}
+Goalw [imps_def] "P, $imps |- R";  
+{\out Level 0}
+{\out P, $imps |- R}
+{\out  1. P, P --> Q, Q --> R |- R}
+by (Fast_tac 1);
+{\out Level 1}
+{\out P, $imps |- R}
+{\out No subgoals!}
+\end{ttbox}
+
+Figures~\ref{lk-basic-rules} and~\ref{lk-rules} present the rules of theory
+\thydx{LK}.  The connective $\bimp$ is defined using $\conj$ and $\imp$.  The
+axiom for basic sequents is expressed in a form that provides automatic
+thinning: redundant formulae are simply ignored.  The other rules are
+expressed in the form most suitable for backward proof; exchange and
+contraction rules are not normally required, although they are provided
+anyway. 
+
+
+\begin{figure} 
+\begin{ttbox}
+\tdx{thinR}        $H |- $E, $F ==> $H |- $E, P, $F
+\tdx{thinL}        $H, $G |- $E ==> $H, P, $G |- $E
+
+\tdx{contR}        $H |- $E, P, P, $F ==> $H |- $E, P, $F
+\tdx{contL}        $H, P, P, $G |- $E ==> $H, P, $G |- $E
+
+\tdx{symR}         $H |- $E, $F, a=b ==> $H |- $E, b=a, $F
+\tdx{symL}         $H, $G, b=a |- $E ==> $H, a=b, $G |- $E
+
+\tdx{transR}       [| $H|- $E, $F, a=b;  $H|- $E, $F, b=c |] 
+             ==> $H|- $E, a=c, $F
+
+\tdx{TrueR}        $H |- $E, True, $F
+
+\tdx{iffR}         [| $H, P |- $E, Q, $F;  $H, Q |- $E, P, $F |]
+             ==> $H |- $E, P<->Q, $F
+
+\tdx{iffL}         [| $H, $G |- $E, P, Q;  $H, Q, P, $G |- $E |]
+             ==> $H, P<->Q, $G |- $E
+
+\tdx{allL_thin}    $H, P(x), $G |- $E ==> $H, ALL x. P(x), $G |- $E
+\tdx{exR_thin}     $H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F
+
+\tdx{the_equality} [| $H |- $E, P(a), $F;  
+                !!x. $H, P(x) |- $E, x=a, $F |] 
+             ==> $H |- $E, (THE x. P(x)) = a, $F
+\end{ttbox}
+
+\caption{Derived rules for {\tt LK}} \label{lk-derived}
+\end{figure}
+
+Figure~\ref{lk-derived} presents derived rules, including rules for
+$\bimp$.  The weakened quantifier rules discard each quantification after a
+single use; in an automatic proof procedure, they guarantee termination,
+but are incomplete.  Multiple use of a quantifier can be obtained by a
+contraction rule, which in backward proof duplicates a formula.  The tactic
+{\tt res_inst_tac} can instantiate the variable~{\tt?P} in these rules,
+specifying the formula to duplicate.
+See theory {\tt Sequents/LK0} in the sources for complete listings of
+the rules and derived rules.
+
+To support the simplifier, hundreds of equivalences are proved for
+the logical connectives and for if-then-else expressions.  See the file
+\texttt{Sequents/simpdata.ML}.
+
+\section{Automatic Proof}
+
+LK instantiates Isabelle's simplifier.  Both equality ($=$) and the
+biconditional ($\bimp$) may be used for rewriting.  The tactic
+\texttt{Simp_tac} refers to the default simpset (\texttt{simpset()}).  With
+sequents, the \texttt{full_} and \texttt{asm_} forms of the simplifier are not
+required; all the formulae{} in the sequent will be simplified.  The left-hand
+formulae{} are taken as rewrite rules.  (Thus, the behaviour is what you would
+normally expect from calling \texttt{Asm_full_simp_tac}.)
+
+For classical reasoning, several tactics are available:
+\begin{ttbox} 
+Safe_tac : int -> tactic
+Step_tac : int -> tactic
+Fast_tac : int -> tactic
+Best_tac : int -> tactic
+Pc_tac   : int -> tactic
+\end{ttbox}
+These refer not to the standard classical reasoner but to a separate one
+provided for the sequent calculus.  Two commands are available for adding new
+sequent calculus rules, safe or unsafe, to the default ``theorem pack'':
+\begin{ttbox} 
+Add_safes   : thm list -> unit
+Add_unsafes : thm list -> unit
+\end{ttbox}
+To control the set of rules for individual invocations, lower-case versions of
+all these primitives are available.  Sections~\ref{sec:thm-pack}
+and~\ref{sec:sequent-provers} give full details.
+
+
+\section{Tactics for the cut rule}
+
+According to the cut-elimination theorem, the cut rule can be eliminated
+from proofs of sequents.  But the rule is still essential.  It can be used
+to structure a proof into lemmas, avoiding repeated proofs of the same
+formula.  More importantly, the cut rule cannot be eliminated from
+derivations of rules.  For example, there is a trivial cut-free proof of
+the sequent \(P\conj Q\turn Q\conj P\).
+Noting this, we might want to derive a rule for swapping the conjuncts
+in a right-hand formula:
+\[ \Gamma\turn \Delta, P\conj Q\over \Gamma\turn \Delta, Q\conj P \]
+The cut rule must be used, for $P\conj Q$ is not a subformula of $Q\conj
+P$.  Most cuts directly involve a premise of the rule being derived (a
+meta-assumption).  In a few cases, the cut formula is not part of any
+premise, but serves as a bridge between the premises and the conclusion.
+In such proofs, the cut formula is specified by calling an appropriate
+tactic.
+
+\begin{ttbox} 
+cutR_tac : string -> int -> tactic
+cutL_tac : string -> int -> tactic
+\end{ttbox}
+These tactics refine a subgoal into two by applying the cut rule.  The cut
+formula is given as a string, and replaces some other formula in the sequent.
+\begin{ttdescription}
+\item[\ttindexbold{cutR_tac} {\it P\/} {\it i}] reads an LK formula~$P$, and
+  applies the cut rule to subgoal~$i$.  It then deletes some formula from the
+  right side of subgoal~$i$, replacing that formula by~$P$.
+  
+\item[\ttindexbold{cutL_tac} {\it P\/} {\it i}] reads an LK formula~$P$, and
+  applies the cut rule to subgoal~$i$.  It then deletes some formula from the
+  left side of the new subgoal $i+1$, replacing that formula by~$P$.
+\end{ttdescription}
+All the structural rules --- cut, contraction, and thinning --- can be
+applied to particular formulae using {\tt res_inst_tac}.
+
+
+\section{Tactics for sequents}
+\begin{ttbox} 
+forms_of_seq       : term -> term list
+could_res          : term * term -> bool
+could_resolve_seq  : term * term -> bool
+filseq_resolve_tac : thm list -> int -> int -> tactic
+\end{ttbox}
+Associative unification is not as efficient as it might be, in part because
+the representation of lists defeats some of Isabelle's internal
+optimisations.  The following operations implement faster rule application,
+and may have other uses.
+\begin{ttdescription}
+\item[\ttindexbold{forms_of_seq} {\it t}] 
+returns the list of all formulae in the sequent~$t$, removing sequence
+variables.
+
+\item[\ttindexbold{could_res} ($t$,$u$)] 
+tests whether two formula lists could be resolved.  List $t$ is from a
+premise or subgoal, while $u$ is from the conclusion of an object-rule.
+Assuming that each formula in $u$ is surrounded by sequence variables, it
+checks that each conclusion formula is unifiable (using {\tt could_unify})
+with some subgoal formula.
+
+\item[\ttindexbold{could_resolve_seq} ($t$,$u$)] 
+  tests whether two sequents could be resolved.  Sequent $t$ is a premise
+  or subgoal, while $u$ is the conclusion of an object-rule.  It simply
+  calls {\tt could_res} twice to check that both the left and the right
+  sides of the sequents are compatible.
+
+\item[\ttindexbold{filseq_resolve_tac} {\it thms} {\it maxr} {\it i}] 
+uses {\tt filter_thms could_resolve} to extract the {\it thms} that are
+applicable to subgoal~$i$.  If more than {\it maxr\/} theorems are
+applicable then the tactic fails.  Otherwise it calls {\tt resolve_tac}.
+Thus, it is the sequent calculus analogue of \ttindex{filt_resolve_tac}.
+\end{ttdescription}
+
+
+\section{A simple example of classical reasoning} 
+The theorem $\turn\ex{y}\all{x}P(y)\imp P(x)$ is a standard example of the
+classical treatment of the existential quantifier.  Classical reasoning is
+easy using~LK, as you can see by comparing this proof with the one given in
+the FOL manual~\cite{isabelle-ZF}.  From a logical point of view, the proofs
+are essentially the same; the key step here is to use \tdx{exR} rather than
+the weaker~\tdx{exR_thin}.
+\begin{ttbox}
+Goal "|- EX y. ALL x. P(y)-->P(x)";
+{\out Level 0}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1.  |- EX y. ALL x. P(y) --> P(x)}
+by (resolve_tac [exR] 1);
+{\out Level 1}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1.  |- ALL x. P(?x) --> P(x), EX x. ALL xa. P(x) --> P(xa)}
+\end{ttbox}
+There are now two formulae on the right side.  Keeping the existential one
+in reserve, we break down the universal one.
+\begin{ttbox}
+by (resolve_tac [allR] 1);
+{\out Level 2}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x.  |- P(?x) --> P(x), EX x. ALL xa. P(x) --> P(xa)}
+by (resolve_tac [impR] 1);
+{\out Level 3}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x. P(?x) |- P(x), EX x. ALL xa. P(x) --> P(xa)}
+\end{ttbox}
+Because LK is a sequent calculus, the formula~$P(\Var{x})$ does not become an
+assumption; instead, it moves to the left side.  The resulting subgoal cannot
+be instantiated to a basic sequent: the bound variable~$x$ is not unifiable
+with the unknown~$\Var{x}$.
+\begin{ttbox}
+by (resolve_tac [basic] 1);
+{\out by: tactic failed}
+\end{ttbox}
+We reuse the existential formula using~\tdx{exR_thin}, which discards
+it; we shall not need it a third time.  We again break down the resulting
+formula.
+\begin{ttbox}
+by (resolve_tac [exR_thin] 1);
+{\out Level 4}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x. P(?x) |- P(x), ALL xa. P(?x7(x)) --> P(xa)}
+by (resolve_tac [allR] 1);
+{\out Level 5}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x xa. P(?x) |- P(x), P(?x7(x)) --> P(xa)}
+by (resolve_tac [impR] 1);
+{\out Level 6}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x xa. P(?x), P(?x7(x)) |- P(x), P(xa)}
+\end{ttbox}
+Subgoal~1 seems to offer lots of possibilities.  Actually the only useful
+step is instantiating~$\Var{x@7}$ to $\lambda x. x$,
+transforming~$\Var{x@7}(x)$ into~$x$.
+\begin{ttbox}
+by (resolve_tac [basic] 1);
+{\out Level 7}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out No subgoals!}
+\end{ttbox}
+This theorem can be proved automatically.  Because it involves quantifier
+duplication, we employ best-first search:
+\begin{ttbox}
+Goal "|- EX y. ALL x. P(y)-->P(x)";
+{\out Level 0}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out  1.  |- EX y. ALL x. P(y) --> P(x)}
+by (best_tac LK_dup_pack 1);
+{\out Level 1}
+{\out  |- EX y. ALL x. P(y) --> P(x)}
+{\out No subgoals!}
+\end{ttbox}
+
+
+
+\section{A more complex proof}
+Many of Pelletier's test problems for theorem provers \cite{pelletier86}
+can be solved automatically.  Problem~39 concerns set theory, asserting
+that there is no Russell set --- a set consisting of those sets that are
+not members of themselves:
+\[  \turn \neg (\exists x. \forall y. y\in x \bimp y\not\in y) \]
+This does not require special properties of membership; we may generalize
+$x\in y$ to an arbitrary predicate~$F(x,y)$.  The theorem, which is trivial
+for \texttt{Fast_tac}, has a short manual proof.  See the directory {\tt
+  Sequents/LK} for many more examples.
+
+We set the main goal and move the negated formula to the left.
+\begin{ttbox}
+Goal "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
+{\out Level 0}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1.  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+by (resolve_tac [notR] 1);
+{\out Level 1}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. EX x. ALL y. F(y,x) <-> ~ F(y,y) |-}
+\end{ttbox}
+The right side is empty; we strip both quantifiers from the formula on the
+left.
+\begin{ttbox}
+by (resolve_tac [exL] 1);
+{\out Level 2}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x. ALL y. F(y,x) <-> ~ F(y,y) |-}
+by (resolve_tac [allL_thin] 1);
+{\out Level 3}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x. F(?x2(x),x) <-> ~ F(?x2(x),?x2(x)) |-}
+\end{ttbox}
+The rule \tdx{iffL} says, if $P\bimp Q$ then $P$ and~$Q$ are either
+both true or both false.  It yields two subgoals.
+\begin{ttbox}
+by (resolve_tac [iffL] 1);
+{\out Level 4}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x.  |- F(?x2(x),x), ~ F(?x2(x),?x2(x))}
+{\out  2. !!x. ~ F(?x2(x),?x2(x)), F(?x2(x),x) |-}
+\end{ttbox}
+We must instantiate~$\Var{x@2}$, the shared unknown, to satisfy both
+subgoals.  Beginning with subgoal~2, we move a negated formula to the left
+and create a basic sequent.
+\begin{ttbox}
+by (resolve_tac [notL] 2);
+{\out Level 5}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x.  |- F(?x2(x),x), ~ F(?x2(x),?x2(x))}
+{\out  2. !!x. F(?x2(x),x) |- F(?x2(x),?x2(x))}
+by (resolve_tac [basic] 2);
+{\out Level 6}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x.  |- F(x,x), ~ F(x,x)}
+\end{ttbox}
+Thanks to the instantiation of~$\Var{x@2}$, subgoal~1 is obviously true.
+\begin{ttbox}
+by (resolve_tac [notR] 1);
+{\out Level 7}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out  1. !!x. F(x,x) |- F(x,x)}
+by (resolve_tac [basic] 1);
+{\out Level 8}
+{\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
+{\out No subgoals!}
+\end{ttbox}
+
+\section{*Unification for lists}\label{sec:assoc-unification}
+
+Higher-order unification includes associative unification as a special
+case, by an encoding that involves function composition
+\cite[page~37]{huet78}.  To represent lists, let $C$ be a new constant.
+The empty list is $\lambda x. x$, while $[t@1,t@2,\ldots,t@n]$ is
+represented by
+\[ \lambda x. C(t@1,C(t@2,\ldots,C(t@n,x))).  \]
+The unifiers of this with $\lambda x.\Var{f}(\Var{g}(x))$ give all the ways
+of expressing $[t@1,t@2,\ldots,t@n]$ as the concatenation of two lists.
+
+Unlike orthodox associative unification, this technique can represent certain
+infinite sets of unifiers by flex-flex equations.   But note that the term
+$\lambda x. C(t,\Var{a})$ does not represent any list.  Flex-flex constraints
+containing such garbage terms may accumulate during a proof.
+\index{flex-flex constraints}
+
+This technique lets Isabelle formalize sequent calculus rules,
+where the comma is the associative operator:
+\[ \infer[(\conj\hbox{-left})]
+         {\Gamma,P\conj Q,\Delta \turn \Theta}
+         {\Gamma,P,Q,\Delta \turn \Theta}  \] 
+Multiple unifiers occur whenever this is resolved against a goal containing
+more than one conjunction on the left.  
+
+LK exploits this representation of lists.  As an alternative, the sequent
+calculus can be formalized using an ordinary representation of lists, with a
+logic program for removing a formula from a list.  Amy Felty has applied this
+technique using the language $\lambda$Prolog~\cite{felty91a}.
+
+Explicit formalization of sequents can be tiresome.  But it gives precise
+control over contraction and weakening, and is essential to handle relevant
+and linear logics.
+
+
+\section{*Packaging sequent rules}\label{sec:thm-pack}
+
+The sequent calculi come with simple proof procedures.  These are incomplete
+but are reasonably powerful for interactive use.  They expect rules to be
+classified as \textbf{safe} or \textbf{unsafe}.  A rule is safe if applying it to a
+provable goal always yields provable subgoals.  If a rule is safe then it can
+be applied automatically to a goal without destroying our chances of finding a
+proof.  For instance, all the standard rules of the classical sequent calculus
+{\sc lk} are safe.  An unsafe rule may render the goal unprovable; typical
+examples are the weakened quantifier rules {\tt allL_thin} and {\tt exR_thin}.
+
+Proof procedures use safe rules whenever possible, using an unsafe rule as a
+last resort.  Those safe rules are preferred that generate the fewest
+subgoals.  Safe rules are (by definition) deterministic, while the unsafe
+rules require a search strategy, such as backtracking.
+
+A \textbf{pack} is a pair whose first component is a list of safe rules and
+whose second is a list of unsafe rules.  Packs can be extended in an obvious
+way to allow reasoning with various collections of rules.  For clarity, LK
+declares \mltydx{pack} as an \ML{} datatype, although is essentially a type
+synonym:
+\begin{ttbox}
+datatype pack = Pack of thm list * thm list;
+\end{ttbox}
+Pattern-matching using constructor {\tt Pack} can inspect a pack's
+contents.  Packs support the following operations:
+\begin{ttbox} 
+pack        : unit -> pack
+pack_of     : theory -> pack
+empty_pack  : pack
+prop_pack   : pack
+LK_pack     : pack
+LK_dup_pack : pack
+add_safes   : pack * thm list -> pack               \hfill\textbf{infix 4}
+add_unsafes : pack * thm list -> pack               \hfill\textbf{infix 4}
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{pack}] returns the pack attached to the current theory.
+
+\item[\ttindexbold{pack_of $thy$}] returns the pack attached to theory $thy$.
+
+\item[\ttindexbold{empty_pack}] is the empty pack.
+
+\item[\ttindexbold{prop_pack}] contains the propositional rules, namely
+those for $\conj$, $\disj$, $\neg$, $\imp$ and~$\bimp$, along with the
+rules {\tt basic} and {\tt refl}.  These are all safe.
+
+\item[\ttindexbold{LK_pack}] 
+extends {\tt prop_pack} with the safe rules {\tt allR}
+and~{\tt exL} and the unsafe rules {\tt allL_thin} and
+{\tt exR_thin}.  Search using this is incomplete since quantified
+formulae are used at most once.
+
+\item[\ttindexbold{LK_dup_pack}] 
+extends {\tt prop_pack} with the safe rules {\tt allR}
+and~{\tt exL} and the unsafe rules \tdx{allL} and~\tdx{exR}.
+Search using this is complete, since quantified formulae may be reused, but
+frequently fails to terminate.  It is generally unsuitable for depth-first
+search.
+
+\item[$pack$ \ttindexbold{add_safes} $rules$] 
+adds some safe~$rules$ to the pack~$pack$.
+
+\item[$pack$ \ttindexbold{add_unsafes} $rules$] 
+adds some unsafe~$rules$ to the pack~$pack$.
+\end{ttdescription}
+
+
+\section{*Proof procedures}\label{sec:sequent-provers}
+
+The LK proof procedure is similar to the classical reasoner described in
+\iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
+            {Chap.\ts\ref{chap:classical}}.  
+%
+In fact it is simpler, since it works directly with sequents rather than
+simulating them.  There is no need to distinguish introduction rules from
+elimination rules, and of course there is no swap rule.  As always,
+Isabelle's classical proof procedures are less powerful than resolution
+theorem provers.  But they are more natural and flexible, working with an
+open-ended set of rules.
+
+Backtracking over the choice of a safe rule accomplishes nothing: applying
+them in any order leads to essentially the same result.  Backtracking may
+be necessary over basic sequents when they perform unification.  Suppose
+that~0, 1, 2,~3 are constants in the subgoals
+\[  \begin{array}{c}
+      P(0), P(1), P(2) \turn P(\Var{a})  \\
+      P(0), P(2), P(3) \turn P(\Var{a})  \\
+      P(1), P(3), P(2) \turn P(\Var{a})  
+    \end{array}
+\]
+The only assignment that satisfies all three subgoals is $\Var{a}\mapsto 2$,
+and this can only be discovered by search.  The tactics given below permit
+backtracking only over axioms, such as {\tt basic} and {\tt refl};
+otherwise they are deterministic.
+
+
+\subsection{Method A}
+\begin{ttbox} 
+reresolve_tac   : thm list -> int -> tactic
+repeat_goal_tac : pack -> int -> tactic
+pc_tac          : pack -> int -> tactic
+\end{ttbox}
+These tactics use a method developed by Philippe de Groote.  A subgoal is
+refined and the resulting subgoals are attempted in reverse order.  For
+some reason, this is much faster than attempting the subgoals in order.
+The method is inherently depth-first.
+
+At present, these tactics only work for rules that have no more than two
+premises.  They fail --- return no next state --- if they can do nothing.
+\begin{ttdescription}
+\item[\ttindexbold{reresolve_tac} $thms$ $i$] 
+repeatedly applies the $thms$ to subgoal $i$ and the resulting subgoals.
+
+\item[\ttindexbold{repeat_goal_tac} $pack$ $i$] 
+applies the safe rules in the pack to a goal and the resulting subgoals.
+If no safe rule is applicable then it applies an unsafe rule and continues.
+
+\item[\ttindexbold{pc_tac} $pack$ $i$] 
+applies {\tt repeat_goal_tac} using depth-first search to solve subgoal~$i$.
+\end{ttdescription}
+
+
+\subsection{Method B}
+\begin{ttbox} 
+safe_tac : pack -> int -> tactic
+step_tac : pack -> int -> tactic
+fast_tac : pack -> int -> tactic
+best_tac : pack -> int -> tactic
+\end{ttbox}
+These tactics are analogous to those of the generic classical
+reasoner.  They use `Method~A' only on safe rules.  They fail if they
+can do nothing.
+\begin{ttdescription}
+\item[\ttindexbold{safe_goal_tac} $pack$ $i$] 
+applies the safe rules in the pack to a goal and the resulting subgoals.
+It ignores the unsafe rules.  
+
+\item[\ttindexbold{step_tac} $pack$ $i$] 
+either applies safe rules (using {\tt safe_goal_tac}) or applies one unsafe
+rule.
+
+\item[\ttindexbold{fast_tac} $pack$ $i$] 
+applies {\tt step_tac} using depth-first search to solve subgoal~$i$.
+Despite its name, it is frequently slower than {\tt pc_tac}.
+
+\item[\ttindexbold{best_tac} $pack$ $i$] 
+applies {\tt step_tac} using best-first search to solve subgoal~$i$.  It is
+particularly useful for quantifier duplication (using \ttindex{LK_dup_pack}).
+\end{ttdescription}
+
+
+
+\index{sequent calculus|)}

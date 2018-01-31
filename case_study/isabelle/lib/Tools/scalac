@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke Scala compiler within the Isabelle environment
+
+isabelle_admin_build jars || exit $?
+
+isabelle_scala scalac -Dfile.encoding=UTF-8 \
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
+

@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{amssymb}
+
+\usepackage{mathpartir}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\newcommand{\showout}{\mbox{}\hspace{-2em}$\leadsto$\quad}
+
+\hyphenation{Isa-belle}
+\begin{document}
+
+\title{\LaTeX\ Sugar for Isabelle Documents}
+\author{Florian Haftmann, Gerwin Klein, Tobias Nipkow, Norbert Schirmer}
+\maketitle
+
+\begin{abstract}
+This document shows how to typset mathematics in Isabelle-based
+documents in a style close to that in ordinary computer science papers.
+\end{abstract}
+
+%\tableofcontents
+
+% generated text of all theories
+\input{Sugar.tex}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

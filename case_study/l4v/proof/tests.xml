@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+     Copyright 2014, General Dynamics C4 Systems
+
+     This software may be distributed and modified according to the terms of
+     the GNU General Public License version 2. Note that NO WARRANTY is provided.
+     See "LICENSE_GPLv2.txt" for details.
+
+     @TAG(GD_GPL)
+  -->
+
+<!--
+
+     Regression Specification File
+
+     See "misc/regression/tests.xml" for a description of the file
+     format.
+
+-->
+
+<testsuite cpu-timeout="3600" depends="isabelle">
+    <!-- Refine -->
+    <sequence depends="ASpec">
+        <test name="AInvs" cpu-timeout="7200">make AInvs</test>
+        <test name="BaseRefine">make BaseRefine</test>
+        <test name="Refine" cpu-timeout="14400">make Refine</test>
+    </sequence>
+
+    <!-- CRefine -->
+    <sequence depends="CParser">
+        <test name="CKernel" cpu-timeout="10800">make CKernel</test>
+        <test name="CSpec" cpu-timeout="7200">make CSpec</test>
+        <test name="CBaseRefine" depends="Refine" cpu-timeout="28800">make CBaseRefine</test>
+        <test name="CRefine" cpu-timeout="28800">make CRefine</test>
+    </sequence>
+
+    <!-- DSpec / DRefine -->
+    <sequence depends="Refine">
+        <test name="DBaseRefine">make DBaseRefine</test>
+        <test name="DRefine" cpu-timeout="7200">make DRefine</test>
+    </sequence>
+
+    <!-- Access Control -->
+    <sequence depends="AInvs">
+        <test name="Access">make Access</test>
+        <test name="InfoFlow" cpu-timeout="7200">make InfoFlow</test>
+        <test name="InfoFlowCBase" depends="CRefine" cpu-timeout="14400"> make InfoFlowCBase</test>
+        <test name="InfoFlowC" cpu-timeout="7200">make InfoFlowC</test>
+    </sequence>
+
+    <!-- Access Control and capDL -->
+    <sequence depends="DRefine">
+        <test name="DPolicy">make DPolicy</test>
+    </sequence>
+
+    <!-- Bisim -->
+    <sequence depends="AInvs">
+        <test name="Bisim">make Bisim</test>
+    </sequence>
+
+    <!-- Binary Verification -->
+    <sequence depends="CSpec">
+        <test name="SimplExportAndRefine" cpu-timeout="21600">make SimplExportAndRefine</test>
+    </sequence>
+
+    <!-- Separation Logic. -->
+    <sequence>
+        <test name="SepTactics">make SepTactics</test>
+        <test name="SepTacticsExamples">make SepTacticsExamples</test>
+    </sequence>
+
+    <!-- Separation Logic on capDL. -->
+    <sequence depends="DSpec">
+        <test name="SepDSpec">make SepDSpec</test>
+        <test name="DSpecProofs">make DSpecProofs</test>
+    </sequence>
+</testsuite>

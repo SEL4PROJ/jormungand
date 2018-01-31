@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Author: Jasmin Blanchette
+#
+# DESCRIPTION: Sledgehammer for TPTP
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG TIMEOUT FILES"
+  echo
+  echo "  Runs Sledgehammer on TPTP problems."
+  echo "  Each problem is allocated at most TIMEOUT seconds."
+  echo
+  exit 1
+}
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
+
+TIMEOUT=$1
+shift
+
+isabelle build -b HOL-TPTP
+
+for FILE in "$@"
+do
+  echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
+ML {* ATP_Problem_Import.sledgehammer_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end" \
+    > /tmp/$SCRATCH.thy
+  isabelle process -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" -l HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val \|^Loading theory\|^Warning-The type of\|^   monotype.$"
+done

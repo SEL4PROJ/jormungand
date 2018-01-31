@@ -1,0 +1,116 @@
+(*  Title:      Tools/solve_direct.ML
+    Author:     Timothy Bourke and Gerwin Klein, NICTA
+
+Check whether a newly stated theorem can be solved directly by an
+existing theorem.  Duplicate lemmas can be detected in this way.
+
+The implementation relies critically on the Find_Theorems solves
+feature.
+*)
+
+signature SOLVE_DIRECT =
+sig
+  val solve_directN: string
+  val someN: string
+  val noneN: string
+  val unknownN: string
+  val max_solutions: int Config.T
+  val strict_warnings: bool Config.T
+  val solve_direct: Proof.state -> bool * (string * string list)
+end;
+
+structure Solve_Direct: SOLVE_DIRECT =
+struct
+
+datatype mode = Auto_Try | Try | Normal
+
+val solve_directN = "solve_direct";
+
+val someN = "some";
+val noneN = "none";
+val unknownN = "none";
+
+
+(* preferences *)
+
+val max_solutions = Attrib.setup_config_int @{binding solve_direct_max_solutions} (K 5);
+val strict_warnings = Attrib.setup_config_bool @{binding solve_direct_strict_warnings} (K false);
+
+
+(* solve_direct command *)
+
+fun do_solve_direct mode state =
+  let
+    val ctxt = Proof.context_of state;
+    val find_ctxt = if mode = Auto_Try then Context_Position.set_visible false ctxt else ctxt;
+
+    val crits = [(true, Find_Theorems.Solves)];
+    fun find g =
+      snd (Find_Theorems.find_theorems find_ctxt (SOME g)
+        (SOME (Config.get find_ctxt max_solutions)) false crits);
+
+    fun prt_result (goal, results) =
+      let
+        val msg =
+          (if mode = Auto_Try then "Auto " else "") ^ solve_directN ^ ": " ^
+          (case goal of
+            NONE => "The current goal"
+          | SOME sg => Syntax.string_of_term ctxt (Thm.term_of sg));
+      in
+        Pretty.big_list
+          (msg ^ " can be solved directly with")
+          (map (Find_Theorems.pretty_thm ctxt) results)
+      end;
+
+    fun seek_against_goal () =
+      (case try Proof.simple_goal state of
+        NONE => NONE
+      | SOME {goal = st, ...} =>
+          let
+            val subgoals = Drule.strip_imp_prems (Thm.cprop_of st);
+            val rs =
+              if length subgoals = 1
+              then [(NONE, find st)]
+              else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
+            val results = filter_out (null o snd) rs;
+          in if null results then NONE else SOME results end);
+    fun message results = separate (Pretty.brk 0) (map prt_result results);
+  in
+    (case try seek_against_goal () of
+      SOME (SOME results) =>
+        (someN,
+          let
+            val msg = Pretty.string_of (Pretty.chunks (message results))
+          in
+            if Config.get ctxt strict_warnings
+            then (warning msg; [])
+            else if mode = Auto_Try
+              then [msg]
+              else (writeln msg; [])
+          end)
+    | SOME NONE =>
+        (if mode = Normal then writeln "No proof found"
+         else ();
+         (noneN, []))
+    | NONE =>
+        (if mode = Normal then writeln "An error occurred"
+         else ();
+         (unknownN, [])))
+  end
+  |> `(fn (outcome_code, _) => outcome_code = someN);
+
+val solve_direct = do_solve_direct Normal
+
+val _ =
+  Outer_Syntax.command @{command_keyword solve_direct}
+    "try to solve conjectures directly with existing theorems"
+    (Scan.succeed (Toplevel.keep_proof (ignore o solve_direct o Toplevel.proof_of)));
+
+
+(* hook *)
+
+fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
+
+val _ = Try.tool_setup (solve_directN, (10, @{system_option auto_solve_direct}, try_solve_direct));
+
+end;

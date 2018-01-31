@@ -1,0 +1,102 @@
+# -*- shell-script -*- :mode=shellscript:
+#
+# Author: Makarius
+#
+# Static Isabelle environment for root of process tree.
+
+export ISABELLE_HOME
+
+export BASH_ENV="$ISABELLE_HOME/lib/scripts/getfunctions"
+source "$BASH_ENV"
+
+
+if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
+then
+
+export ISABELLE_SETTINGS_PRESENT=true
+
+set -o allexport
+
+#sane environment defaults (notably on Mac OS X)
+if [ "$ISABELLE_APP" = true -a -x /usr/libexec/path_helper ]; then
+  eval $(/usr/libexec/path_helper -s)
+fi
+
+#Cygwin vs. POSIX
+if [ "$OSTYPE" = cygwin ]
+then
+  unset INI_DIR
+
+  if [ -n "$TEMP_WINDOWS" ]; then
+    TMPDIR="$(cygpath -u "$TEMP_WINDOWS")"
+    TMP="$TMPDIR"
+    TEMP="$TMPDIR"
+  fi
+
+  if [ -z "$USER_HOME" ]; then
+    USER_HOME="$(cygpath -u "$USERPROFILE")"
+  fi
+
+  CYGWIN_ROOT="$(platform_path "/")"
+  ISABELLE_ROOT="$(platform_path "$ISABELLE_HOME")"
+
+  ISABELLE_CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
+  unset CLASSPATH
+else
+  if [ -z "$USER_HOME" ]; then
+    USER_HOME="$HOME"
+  fi
+
+  ISABELLE_ROOT="$ISABELLE_HOME"
+
+  ISABELLE_CLASSPATH="$CLASSPATH"
+  unset CLASSPATH
+fi
+
+#main executables
+ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
+ISABELLE_SCALA_SCRIPT="$ISABELLE_HOME/bin/isabelle_scala_script"
+PATH="$ISABELLE_HOME/bin:$PATH"
+
+#platform
+source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
+if [ -z "$ISABELLE_PLATFORM" ]; then
+  echo 1>&2 "Failed to determine hardware and operating system type!"
+  exit 2
+fi
+
+#Isabelle distribution identifier -- filled in automatically!
+ISABELLE_ID=""
+[ -z "$ISABELLE_IDENTIFIER" ] && ISABELLE_IDENTIFIER=""
+
+
+# components
+
+ISABELLE_COMPONENTS=""
+ISABELLE_COMPONENTS_MISSING=""
+
+#main components
+init_component "$ISABELLE_HOME"
+[ -d "$ISABELLE_HOME/Admin" ] && init_component "$ISABELLE_HOME/Admin"
+if [ -d "$ISABELLE_HOME_USER" ]; then
+  init_component "$ISABELLE_HOME_USER"
+else
+  mkdir -p "$ISABELLE_HOME_USER"
+  chmod $(umask -S) "$ISABELLE_HOME_USER"
+fi
+
+#ML system identifier
+if [ -z "$ML_PLATFORM" ]; then
+  ML_IDENTIFIER="$ML_SYSTEM"
+else
+  ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
+fi
+
+ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
+
+#enforce JAVA_HOME
+export JAVA_HOME="$ISABELLE_JDK_HOME/jre"
+
+set +o allexport
+
+fi

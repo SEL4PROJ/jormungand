@@ -1,0 +1,95 @@
+## Isabelle plugin properties
+##
+##:encoding=ISO-8859-1:wrap=soft:maxLineLen=100:
+
+#identification
+plugin.isabelle.jedit.Plugin.name=Isabelle
+plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
+plugin.isabelle.jedit.Plugin.version=8.0
+plugin.isabelle.jedit.Plugin.description=Isabelle Prover IDE
+
+#system parameters
+plugin.isabelle.jedit.Plugin.activate=startup
+plugin.isabelle.jedit.Plugin.usePluginHome=false
+
+#dependencies
+plugin.isabelle.jedit.Plugin.depend.0=jdk 1.8
+plugin.isabelle.jedit.Plugin.depend.1=jedit 05.03.00.00
+plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
+plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
+plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
+
+#options
+plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering
+options.isabelle-general.label=General
+options.isabelle-general.code=new isabelle.jedit.Isabelle_Options1();
+options.isabelle-rendering.label=Rendering
+options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
+
+#menu actions and dockables
+plugin.isabelle.jedit.Plugin.menu.label=Isabelle
+plugin.isabelle.jedit.Plugin.menu= \
+  isabelle-debugger \
+  isabelle-documentation \
+  isabelle-monitor \
+  isabelle-output \
+  isabelle-protocol \
+  isabelle-query \
+  isabelle-raw-output \
+  isabelle-simplifier-trace \
+  isabelle-sledgehammer \
+  isabelle-state \
+  isabelle-symbols \
+  isabelle-syslog \
+  isabelle-theories \
+  isabelle-timing
+isabelle-debugger.label=Debugger panel
+isabelle-debugger.title=Debugger
+isabelle-documentation.label=Documentation panel
+isabelle-documentation.title=Documentation
+isabelle-graphview.label=Graphview panel
+isabelle-graphview.title=Graphview
+isabelle-info.label=Info panel
+isabelle-info.title=Info
+isabelle-monitor.label=Monitor panel
+isabelle-monitor.title=Monitor
+isabelle-output.label=Output panel
+isabelle-output.title=Output
+isabelle-protocol.label=Protocol panel
+isabelle-protocol.title=Protocol
+isabelle-query.label=Query panel
+isabelle-query.title=Query
+isabelle-raw-output.label=Raw Output panel
+isabelle-raw-output.title=Raw Output
+isabelle-simplifier-trace.label=Simplifier Trace panel
+isabelle-simplifier-trace.title=Simplifier Trace
+isabelle-sledgehammer.label=Sledgehammer panel
+isabelle-sledgehammer.title=Sledgehammer
+isabelle-state.label=State panel
+isabelle-state.title=State
+isabelle-symbols.label=Symbols panel
+isabelle-symbols.title=Symbols
+isabelle-syslog.label=Syslog panel
+isabelle-syslog.title=Syslog
+isabelle-theories.label=Theories panel
+isabelle-theories.title=Theories
+isabelle-timing.label=Timing panel
+isabelle-timing.title=Timing
+
+#SideKick
+mode.isabelle-news.folding=sidekick
+mode.isabelle-news.sidekick.parser=isabelle-news
+mode.isabelle-options.folding=sidekick
+mode.isabelle-options.sidekick.parser=isabelle-options
+mode.isabelle-root.folding=sidekick
+mode.isabelle-root.sidekick.parser=isabelle-root
+mode.isabelle.customSettings=true
+mode.isabelle.folding=isabelle
+mode.isabelle.sidekick.parser=isabelle
+mode.isabelle.sidekick.showStatusWindow.label=true
+mode.isabelle-ml.folding=sidekick
+mode.isabelle-ml.sidekick.parser=isabelle-ml
+mode.sml.folding=sidekick
+mode.sml.sidekick.parser=isabelle-sml
+mode.bibtex.folding=sidekick
+mode.bibtex.sidekick.parser=bibtex

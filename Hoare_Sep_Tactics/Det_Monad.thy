@@ -5,6 +5,7 @@ imports
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/While_Combinator"
   "../Monad_WP/wp/WP"
+  SP
 begin
 
 
@@ -184,6 +185,10 @@ text \<open>Rule collections for strongest postconditions\<close>
 named_theorems sp
 named_theorems sp_pre
 
+text {* Strongest postcondition method setup *}
+method sp declares sp = ((((rule sp)+), (rule sp_pre, rule sp, assumption?)?)  |
+                        (rule sp_pre, rule sp, assumption?))
+
 lemma bind_wp[wp']:
   "(\<And>x. \<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B\<rbrace> \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>"
   unfolding valid_def Let_def bind_def by (fastforce split: prod.splits)
@@ -235,12 +240,6 @@ lemma prod_sp[sp]:
 
 text {* Weakest precondition method setup *}
 method wp uses wp = (rule wp_pre', WP.wp wp wp', assumption?)
-
-text {* Strongest postcondition method setup *}
-method sp declares sp = ((((rule sp)+), (rule sp_pre, rule sp, assumption?)?)  |
-                        (rule sp_pre, rule sp, assumption?))
-
-(* method sp declares sp = ((rule sp)+, (rule sp_pre, rule sp, assumption?)?) *)
 
 
 (* partial correctness assumes asserts *)
