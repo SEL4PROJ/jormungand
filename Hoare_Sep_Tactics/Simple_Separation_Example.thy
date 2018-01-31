@@ -17,7 +17,17 @@ theory Simple_Separation_Example
 imports
   "Extended_Separation_Algebra"
   "Hoare_Sep_Tactics"
+  "Sep_SP"
 begin
+
+lemma sep_sp_coimpl[sep_sp]:
+  "(\<And>R. \<lbrace>(P \<leadsto>* R)\<rbrace> f \<lbrace>\<lambda>rv. (Q rv \<and>* R)\<rbrace>) \<Longrightarrow>
+   \<lbrace>R\<rbrace> f \<lbrace>\<lambda>rv. (Q rv \<and>* (P -* R)) \<rbrace>"
+  apply (rule hoare_chain, atomize, erule allE, assumption)
+  apply (sep_forward, assumption)
+  apply (assumption)
+done 
+
 
 declare [[syntax_ambiguity_warning = false]]
 
@@ -33,6 +43,21 @@ definition maps_to_ex :: "nat \<Rightarrow> heap \<Rightarrow> bool" ("_ \<mapst
 lemma maps_to_maps_to_ex [elim!]:
   "(p \<mapsto> v) s \<Longrightarrow> (p \<mapsto> -) s"
   by (auto simp: maps_to_ex_def)
+
+lemma precise_maps_to: "precise (p \<mapsto> v)"
+  apply (clarsimp simp: precise_def maps_to_def)
+  done
+
+lemma precise_maps_to_ex: "precise (p \<mapsto> -)"
+  apply (clarsimp simp: precise_def maps_to_def maps_to_ex_def)
+  apply (rule ext, clarsimp simp: sep_substate_def)
+  apply (clarsimp simp: plus_fun_def plus_option_def)
+  apply (drule fun_cong[where x=p], clarsimp split: option.splits)
+  by (metis (full_types) fun_upd_same option.distinct(2) option.simps(5) sep_disj_fun_def sep_disj_option_def)
+
+declare precise_maps_to[precise]
+declare precise_maps_to_ex[precise]
+declare maps_to_maps_to_ex[sep_cancel]
 
 lemma precise_weaken_pre:
   "precise P \<Longrightarrow> \<lbrace>P \<leadsto>* R\<rbrace> f \<lbrace>\<lambda>_. Q \<and>* R\<rbrace>  \<Longrightarrow> \<lbrace>P \<and>* R\<rbrace> f \<lbrace>\<lambda>_. Q \<and>* R\<rbrace> "
@@ -74,7 +99,7 @@ definition
 declare K_def [simp] pred_conj_def [simp]
 
 lemma None_disj[simp]: "None ## x \<and> x ## None"
-  by (simp add: sep_disj_option_def split: option.splits)
+  by (clarsimp simp: sep_disj_option_def split: option.splits)
 
 lemma None_plus[simp]: "x + None = x \<and> None + x = x"
   by (simp add: plus_option_def split: option.splits)
@@ -83,7 +108,7 @@ lemma SOME_None[simp]:
   "s p = None \<Longrightarrow> s (SOME p. s p = None) = None"
   by (rule someI)
 
-lemma new_ptr_sp[sp]: "\<lbrace>R\<rbrace> new_ptr \<lbrace>\<lambda>rv. rv \<mapsto> - \<and>* R\<rbrace>"
+lemma new_ptr_sp[sp]: "\<lbrace>\<box> \<and>* R\<rbrace> new_ptr \<lbrace>\<lambda>rv. rv \<mapsto> - \<and>* R\<rbrace>"
   apply (clarsimp simp: new_ptr_def)
   apply Det_Monad.wp
   apply (rename_tac s)
@@ -130,10 +155,9 @@ lemma set_ptr_sp[sp]: "\<lbrace>p \<mapsto> - \<leadsto>* R\<rbrace> set_ptr p v
   apply (clarsimp simp: maps_to_ex_def maps_to_def)
   done
 
+
 lemma set_ptr_sp'[sp]: "\<lbrace>R\<rbrace> set_ptr p v \<lbrace>\<lambda>rv. p \<mapsto> v \<and>* (p \<mapsto> - -* R )\<rbrace>"
-  apply (rule hoare_chain, rule set_ptr_sp)
-   apply (erule (1) sep_snake_septraction, assumption)
-  done
+  by (sep_sp spec: set_ptr_sp)
 
 lemma get_ptr_wp[wp']: "\<lbrace>EXS x. p \<mapsto> x \<and>* (p \<mapsto> x \<longrightarrow>* R x )\<rbrace> get_ptr p \<lbrace>R \<rbrace>"
   apply (clarsimp simp: get_ptr_def, Det_Monad.wp)
@@ -202,18 +226,12 @@ lemma extract_forall_septract:"(P -* (ALLS x. R x)) s \<Longrightarrow> \<forall
   done
 
 lemma septraction_snake_trivial_alls: "(P x -* (ALLS x. P x  \<leadsto>* R x)) s \<Longrightarrow> R x s"
-  apply (clarsimp simp: septraction_def pred_neg_def  sep_coimpl_def )
-  apply (erule contrapos_np)
-  apply (erule sep_curry[rotated])
-  apply (rule_tac x=x in exI)
-  apply (sep_cancel)
-  done
+  by (sep_invert, fastforce)
 
 lemma get_ptr_valid: "\<lbrace>ALLS x. (p \<mapsto> x \<leadsto>* R x) \<rbrace> get_ptr p \<lbrace>\<lambda>rv. (p \<mapsto> rv \<and>* R rv) \<rbrace>"
-  apply (rule hoare_strengthen_post, rule get_ptr_sp)
-  apply (sep_cancel)
-  apply (erule septraction_snake_trivial_alls)
-  done
+  apply (sp, sep_invert, erule_tac x=rv in allE)
+  apply (sep_forward)+
+done
 
 
 definition
@@ -222,16 +240,6 @@ definition
      set_ptr p' x
    }"
 
-lemma precise_maps_to: "precise (p \<mapsto> v)"
-  apply (clarsimp simp: precise_def maps_to_def)
-  done
-
-lemma precise_maps_to_ex: "precise (p \<mapsto> -)"
-  apply (clarsimp simp: precise_def maps_to_def maps_to_ex_def)
-  apply (rule ext, clarsimp simp: sep_substate_def)
-  apply (clarsimp simp: plus_fun_def plus_option_def)
-  apply (drule fun_cong[where x=p], clarsimp split: option.splits)
-  by (metis (full_types) fun_upd_same option.distinct(2) option.simps(5) sep_disj_fun_def sep_disj_option_def)
 
 lemma septract_maps_to:"(p \<mapsto> v -* (p \<mapsto> v' \<and>* R)) s \<Longrightarrow> R s \<and> v = v'"
   apply (clarsimp simp: septraction_def pred_neg_def sep_impl_def maps_to_def sep_conj_def)
@@ -287,21 +295,17 @@ lemma copy_ptr_wp':
   "\<lbrace>ALLS x. (p \<mapsto> x \<leadsto>* (ALLS x. (p \<mapsto> x \<longrightarrow>* (p' \<mapsto> - \<leadsto>* p' \<mapsto> x \<longrightarrow>* R)) ))  \<rbrace>
    copy_ptr p p'  \<lbrace>\<lambda>rv. R\<rbrace>"
   apply (clarsimp simp: copy_ptr_def)
-  apply (rule bind_wp)
-   apply (rule hoare_strengthen_post, rule set_ptr_sp)
-   apply (sep_erule (direct) sep_mp)
-  apply (rule hoare_strengthen_post, rule get_ptr_valid)
-  apply (erule sep_All_mp)
-  done
+  apply (sp, sep_invert)
+  apply (erule_tac x=x in allE)
+  apply (sep_forward)
+  apply (fastforce)
+done
 
 
 lemma copy_ptr_sp[sp]:
   "\<lbrace>R\<rbrace> copy_ptr p p' \<lbrace>\<lambda>rv. EXS x. p' \<mapsto> x \<and>* (p' \<mapsto> - -*  (p \<mapsto> x \<and>* (p \<mapsto> x -* R)))\<rbrace>"
   apply (clarsimp simp: copy_ptr_def)
-  apply (rule hoare_seq_ext)
-  apply (rule get_ptr_sp)
-  apply (rule hoare_chain)
-  apply (rule set_ptr_sp, erule (1) sep_snake_septraction)
+  apply (sp)
   apply (rule_tac x=x in exI, clarsimp)
   done
 
@@ -340,9 +344,8 @@ lemma extract_exs_septraction_simp'[simp]: "((EXS v. R v) -* P ) = (EXS v. (R v 
   apply (rule ext, rule iffI; fastforce simp: septraction_def sep_impl_def pred_neg_def)
   done
 
-
 lemma new_ptr_wp: "\<lbrace>ALLS p. p \<mapsto> - \<longrightarrow>* R p\<rbrace> new_ptr \<lbrace>R\<rbrace>"
-  apply (rule hoare_chain, rule new_ptr_sp, assumption)
+  apply (rule hoare_chain, rule new_ptr_sp[simplified], assumption)
   using sep_conj_commuteI sep_conj_sep_impl2 by blast
 
 lemma delete_ptr_valid: "\<lbrace>p \<mapsto> - \<and>* R\<rbrace> delete_ptr p \<lbrace>\<lambda>_. R\<rbrace>"
@@ -418,19 +421,38 @@ lemmas septract_maps_to_set' = septract_maps_to_set[where Q=sep_empty, simplifie
 lemma septraction_extract_pure[simp]: "(P -* (\<lambda>s. R s \<and> r)) = ((P -* R) and K r)"
   by (rule ext, rule iffI; fastforce simp: septraction_def sep_impl_def pred_neg_def)
 
+(*
 method septract_cancel =
   ((septract_drule septract_maps_to_set | septract_drule' septract_maps_to_set') |
    ((sep_drule septraction_impl2 | drule septraction_impl2), septract_cancel, assumption))
-
+*)
 
 (* now forwards *)
 
+declare precise_maps_to[precise]
+declare precise_maps_to_ex[precise]
+declare maps_to_maps_to_ex[sep_cancel]
+
+
+lemma maps_to_pointer[precise]: "pointer (maps_to p)" 
+ apply (clarsimp simp:  pointer_def maps_to_def 
+  sep_conj_def sep_coimpl_def pred_neg_def)
+  apply (subgoal_tac "x=y", simp)
+  apply (metis sep_add_cancelD sep_add_commute sep_disj_commuteI)
+  apply (drule_tac x=p in fun_cong)
+ apply (clarsimp simp: plus_fun_def plus_option_def split: option.splits)
+  apply (clarsimp simp: sep_disj_fun_def)
+  apply (erule_tac x=p in allE)
+  apply (erule_tac x=p in allE)
+apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
+done
+
 lemma swap_ptr_valid': "\<lbrace>p \<mapsto> v \<and>* p' \<mapsto> v' \<and>* R\<rbrace> swap_ptr p p' \<lbrace>\<lambda>_. p \<mapsto> v' \<and>* p' \<mapsto> v \<and>* R\<rbrace>"
   unfolding swap_ptr_def
-  apply sp
+  apply (sp sp: new_ptr_sp[simplified])
   apply (clarsimp simp: sep_conj_exists2)
-  apply (septract_cancel, (clarsimp simp: sep_conj_assoc)?)+
-  apply (sep_solve)
+  apply (sep_invert; sep_forward+)
+  apply (simp, sep_solve)
   done
 
 primrec
@@ -451,19 +473,17 @@ lemma set_ptr_list_valid:
   "\<lbrace>(p \<mapsto> - and (\<lambda>s. p \<noteq>0)) \<and>* list q qs\<rbrace>
      set_ptr p q
    \<lbrace>\<lambda>_. list p (p#qs)\<rbrace>"
-  apply (rule hoare_chain, rule precise_weaken_pre[OF precise_maps_to_ex], rule set_ptr_sp)
-   defer
-   apply (sep_erule (direct) sep_mp)
+  apply (sp)
   apply clarsimp
-  apply (sep_cancel)
-  apply (erule sep_curry[where P="list q qs ", rotated])
+  apply (sep_invert)
+  apply (clarsimp)
+  apply (sep_forward, sep_forward)
   apply (rule_tac x=q in exI, sep_solve)
   done
 
 lemma set_ptr_wp[wp']: "\<lbrace>p \<mapsto> - \<and>* (p \<mapsto> v \<longrightarrow>* R)\<rbrace> set_ptr p v \<lbrace>\<lambda>_. R\<rbrace>"
-  apply (rule hoare_chain, rule set_ptr_sp)
-   apply (erule precise_conj_coimpl'[OF precise_maps_to_ex])
-  apply (sep_solve)
+  apply (sp)
+  apply (sep_invert, sep_forward, assumption)
   done
 
 
@@ -533,7 +553,11 @@ lemma list_nonemptyI:"(list b as \<and>* a \<mapsto> b) s \<Longrightarrow> 0 < 
    apply (clarsimp, rule exI, sep_cancel)
 done
 
-method septract_solve = (septract_cancel)+
+lemma sep_pred_conj_sep_conj: "P s \<Longrightarrow> Q s \<Longrightarrow> (P \<and>* (Q -* (P and Q))) s"
+  by (metis disjoint_zero_sym pred_conj_def pred_neg_def sep_add_zero_sym sep_conjI
+            sep_conj_commuteI sep_mp septraction_def)
+
+method sep_forward_simp = (sep_invert; sep_forward+)
 
 lemma list_rev_valid_sp:
   "\<lbrace>list p ps \<and>* R\<rbrace> list_rev p \<lbrace>\<lambda>rv. list rv (rev ps) \<and>* R\<rbrace>"
@@ -543,13 +567,8 @@ lemma list_rev_valid_sp:
   apply (sp; clarsimp)
    apply (rename_tac list' rev')
    apply (case_tac list'; clarsimp simp: sep_conj_assoc)
-   apply (septract_solve, rule trivial_spec, clarsimp, rule exI, sep_solve)
+   apply (sep_forward_simp, rule trivial_spec, clarsimp, rule exI, sep_solve)
   apply (rule hoare_post, sp, clarsimp)
   done
-
-
-lemma sep_pred_conj_sep_conj: "P s \<Longrightarrow> Q s \<Longrightarrow> (P \<and>* (Q -* (P and Q))) s"
-  by (metis disjoint_zero_sym pred_conj_def pred_neg_def sep_add_zero_sym sep_conjI
-            sep_conj_commuteI sep_mp septraction_def)
 
 end

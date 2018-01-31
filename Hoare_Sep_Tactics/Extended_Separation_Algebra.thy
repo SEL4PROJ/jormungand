@@ -41,7 +41,7 @@ instance
 end
 
 class positive_sep_algebra = stronger_sep_algebra +
-  assumes sep_disj_positive [simp]: "x ## y \<Longrightarrow> x + y = 0 \<Longrightarrow> x = 0 \<and> y = 0"
+  assumes sep_disj_positive : "a ## a \<Longrightarrow> a + a = b \<Longrightarrow> a = b"
 
 class cancellative_sep_algebra = positive_sep_algebra +
   assumes sep_add_cancelD: "\<lbrakk> x + z = y + z ; x ## z ; y ## z \<rbrakk> \<Longrightarrow> x = y"
@@ -56,6 +56,11 @@ where
 
 lemma "precise (op = s)"
   by (metis (full_types) precise_def)
+
+lemma sep_disj_positive_zero[simp]: "x ## y \<Longrightarrow> x + y = 0 \<Longrightarrow> x = 0 \<and> y = 0"
+  by (metis (full_types) local.disjoint_zero_sym 
+local.sep_add_cancelD local.sep_add_disjD local.sep_add_zero_sym local.sep_disj_positive)
+  
 
 lemma sep_add_cancel:
   "x ## z \<Longrightarrow> y ## z \<Longrightarrow> (x + z = y + z) = (x = y)"
@@ -192,13 +197,11 @@ instance
   apply (intro_classes)
     apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def)
     apply (safe; fastforce)
-   apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def, safe)
+   apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def)
     apply (rule ext)
     apply (meson sep_disj_positive)
    apply (rule ext)
-       apply (meson sep_disj_positive)
   apply (clarsimp simp: plus_fun_def sep_disj_fun_def zero_fun_def)
-  apply (rule ext)
   by (meson sep_add_cancel)
 end
 
@@ -212,10 +215,10 @@ lemma sep_substate_antisym: "x \<preceq> y \<Longrightarrow> y \<preceq> x \<Lon
    apply (clarsimp)
   apply (subgoal_tac "(x + h' + h = x + 0) \<longrightarrow> ((0 + x) = (h' + h) + x)")
    apply (drule mp, clarsimp)
-   apply (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD disjoint_zero_sym sep_disj_add_eq sep_disj_commuteI sep_disj_positive)
+  apply (metis Extended_Separation_Algebra.cancellative_sep_algebra_class.sep_add_cancelD sep_add_disj_eq sep_disj_commuteI sep_disj_positive_zero sep_disj_zero)
   by (metis sep_add_assoc sep_add_commute sep_add_zero sep_add_zero_sym sep_disj_commuteI)
 
-
+(*
 instantiation set :: (type) stronger_sep_algebra begin
 definition "zero_set = {}"
 definition "plus_set = (op \<union>)"
@@ -224,6 +227,7 @@ instance
   apply (intro_classes; simp add: zero_set_def plus_set_def sep_disj_set_def; blast)
   done
 end
+*)
 
 context sep_algebra begin
 
@@ -681,7 +685,7 @@ lemma septract_trivial: "P s \<Longrightarrow> (sep_true -* P) s"
   using sep_disj_zero by fastforce
 
 lemma sep_empty_and_conj:"\<box> s \<Longrightarrow> (P \<and>* Q) s \<Longrightarrow> P (s :: 'a :: cancellative_sep_algebra)"
-  by (metis sep_conj_def sep_disj_positive sep_empty_def)
+  by (metis sep_conj_def sep_disj_positive_zero sep_empty_def)
 
 lemma sep_conj_coimpl_mp:"(P \<and>* R) s \<Longrightarrow> (P \<leadsto>* Q) s \<Longrightarrow> (P \<and>* (Q and R)) s"
   apply (drule (2) sep_coimpl_mp_gen, clarsimp simp: pred_conj_def conj_commute)

@@ -237,7 +237,10 @@ text {* Weakest precondition method setup *}
 method wp uses wp = (rule wp_pre', WP.wp wp wp', assumption?)
 
 text {* Strongest postcondition method setup *}
-method sp declares sp = ((rule sp)+, (rule sp_pre, rule sp, assumption?)?)
+method sp declares sp = ((((rule sp)+), (rule sp_pre, rule sp, assumption?)?)  |
+                        (rule sp_pre, rule sp, assumption?))
+
+(* method sp declares sp = ((rule sp)+, (rule sp_pre, rule sp, assumption?)?) *)
 
 
 (* partial correctness assumes asserts *)
@@ -292,6 +295,27 @@ lemma return_sp[sp]:
   "\<lbrace>P\<rbrace> return x \<lbrace>\<lambda>rv s. rv = x \<and> P s\<rbrace>"
   by wp simp
 
+lemma put_sp[sp]:
+  "\<lbrace>R\<rbrace> put a \<lbrace>\<lambda>_ s. s = a \<rbrace>"
+  by(simp add:put_def valid_def)
+
+lemma put_sp'[sp]:
+  "\<lbrace>\<lambda>_. R\<rbrace> put a \<lbrace>\<lambda>_ s. s = a \<and> R\<rbrace>"
+  by(simp add:put_def valid_def)
+
+lemma get_sp[sp]:
+  "\<lbrace>P\<rbrace> get \<lbrace>\<lambda>a s. s = a \<and> P s\<rbrace>"
+  by(simp add:get_def valid_def)
+
+lemma assert_sp[sp]:
+  "\<lbrace> P \<rbrace> assert Q \<lbrace> \<lambda>r s. P s \<and> Q \<rbrace>"
+  by (simp add: assert_def fail_def return_def valid_def)
+
+lemma hoare_gets_sp[sp]:
+  "\<lbrace>P\<rbrace> gets f \<lbrace>\<lambda>rv s. rv = f s \<and> P s\<rbrace>"
+  apply (simp add: gets_def, sp, clarsimp)
+done
+
 section "Total Correctness Rules"
 
 lemma bind_wp_nf:
@@ -328,6 +352,7 @@ lemma bind_wpU[wp']:
   "(\<And>x.\<lbrace>B x\<rbrace> g x \<lbrace>C\<rbrace>u) \<Longrightarrow> \<lbrace>A\<rbrace> f \<lbrace>B \<rbrace>u \<Longrightarrow> \<lbrace>A\<rbrace> f >>= g \<lbrace>C\<rbrace>u"
   by (rule hoare_seq_extU)
 
+
 lemma get_wpU[wp']: "\<lbrace>\<lambda>s. P (fst s) s \<rbrace> get \<lbrace> P \<rbrace>u"
   by (clarsimp simp: get_def validU_def)
 
@@ -359,5 +384,7 @@ lemma modify_wpU[wp']:
 
 lemma gets_wpU[wp']: "\<lbrace>\<lambda>s.  P (f (fst s)) s \<rbrace> gets f \<lbrace> P \<rbrace>u"
   unfolding gets_def by wp
+
+
 
 end
