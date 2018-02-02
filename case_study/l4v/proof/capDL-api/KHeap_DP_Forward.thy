@@ -60,6 +60,7 @@ apply (clarsimp simp: plus_sep_state_def sep_state_add_def sep_disj_sep_state_de
 apply (clarsimp simp: plus_sep_state_def sep_state_add_def sep_disj_sep_state_def sep_state_disj_def)
   using map_add_left_eq apply blast
 done
+end
 
 
 lemma precise_sep_any_map_c: "precise (sep_any_map_c p)"
@@ -831,3 +832,5 @@ lemma lookup_slot_for_cnode_op_wpE:
 done
 
 end
+
+
