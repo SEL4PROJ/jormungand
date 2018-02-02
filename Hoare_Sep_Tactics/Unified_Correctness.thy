@@ -31,6 +31,7 @@ instantiation "prod" :: (cancellative_sep_algebra, cancellative_sep_algebra) can
 begin
 instance
   apply (intro_classes; clarsimp simp: sep_disj_prod_def plus_prod_def zero_prod_def)
+  apply (simp add: sep_disj_positive)
   by (simp add: sep_add_cancel)
 end
 
