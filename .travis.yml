@@ -13,4 +13,4 @@ cache:
     - $HOME/.isabelle
 
 script:
-  Isabelle2016-1/bin/isabelle build -v -D .
+  L4V_ARCH=ARM Isabelle2016-1/bin/isabelle build -v -D .

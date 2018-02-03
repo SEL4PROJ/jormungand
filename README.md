@@ -21,4 +21,5 @@ case_study/ contains a copy of the l4v project, of interest to the paper are
 
 The theories compile with Isabelle2016-1:
 
+		export L4V_ARCH=ARM
     isabelle build -v -D .
