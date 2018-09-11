@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/SEL4PROJ/jormungand.svg?branch=master)](https://travis-ci.org/SEL4PROJ/jormungand)
-
 This repository contains the supporting Isabelle/HOL theories
 for the thesis "Forward with Separation Logic".
 
