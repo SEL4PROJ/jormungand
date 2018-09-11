@@ -52,8 +52,7 @@ lemma precise_maps_to_ex: "precise (p \<mapsto> -)"
   apply (clarsimp simp: precise_def maps_to_def maps_to_ex_def)
   apply (rule ext, clarsimp simp: sep_substate_def)
   apply (clarsimp simp: plus_fun_def plus_option_def)
-  apply (drule fun_cong[where x=p], clarsimp split: option.splits)
-  by (metis (full_types) fun_upd_same option.distinct(2) option.simps(5) sep_disj_fun_def sep_disj_option_def)
+  by (drule fun_cong[where x=p], clarsimp split: option.splits)
 
 declare precise_maps_to[precise]
 declare precise_maps_to_ex[precise]
@@ -166,9 +165,9 @@ lemma get_ptr_wp[wp']: "\<lbrace>EXS x. p \<mapsto> x \<and>* (p \<mapsto> x \<l
   apply (clarsimp simp: sep_disj_commute sep_add_commute)
   apply (subgoal_tac "x=y")
    apply (clarsimp)
-  apply (clarsimp simp: plus_fun_def plus_option_def split: option.splits)
-  done
-
+  by (metis fun_upd_same option.inject option.simps(5) plus_fun_def plus_option_def sep_add_commute sep_disj_fun_def)
+ 
+  
 
 lemma get_ptr_sp_weak: "\<lbrace>R\<rbrace> get_ptr p \<lbrace>\<lambda>rv. R and (ALLS x. (p \<mapsto> x \<leadsto>* (\<lambda>s. rv = x)))\<rbrace>"
   apply (clarsimp simp: get_ptr_def, Det_Monad.wp)
@@ -441,10 +440,6 @@ lemma maps_to_pointer[precise]: "pointer (maps_to p)"
   apply (metis sep_add_cancelD sep_add_commute sep_disj_commuteI)
   apply (drule_tac x=p in fun_cong)
  apply (clarsimp simp: plus_fun_def plus_option_def split: option.splits)
-  apply (clarsimp simp: sep_disj_fun_def)
-  apply (erule_tac x=p in allE)
-  apply (erule_tac x=p in allE)
-apply (clarsimp simp: sep_disj_fun_def sep_disj_option_def)
 done
 
 lemma swap_ptr_valid': "\<lbrace>p \<mapsto> v \<and>* p' \<mapsto> v' \<and>* R\<rbrace> swap_ptr p p' \<lbrace>\<lambda>_. p \<mapsto> v' \<and>* p' \<mapsto> v \<and>* R\<rbrace>"

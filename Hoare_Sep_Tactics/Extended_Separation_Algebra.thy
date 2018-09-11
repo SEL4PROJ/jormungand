@@ -175,7 +175,8 @@ end
 instantiation option :: (type) sep_algebra begin
 definition "sep_disj_option (h :: 'a option) (h' :: 'a option) =
              (case h of (Some x) \<Rightarrow> h' = None | _ \<Rightarrow> h = None)"
-definition "plus_option (h :: 'a option) (h' :: 'a option) = (case h of (Some x) \<Rightarrow> (case h' of (Some y) \<Rightarrow> None | _ \<Rightarrow> h) | _ \<Rightarrow> h')"
+definition "plus_option (h :: 'a option) (h' :: 'a option) = 
+           (case h of (Some x) \<Rightarrow> h | _ \<Rightarrow> h')"
 definition "zero_option = None"
 instance
   apply (intro_classes)

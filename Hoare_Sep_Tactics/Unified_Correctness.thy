@@ -316,7 +316,6 @@ lemma sept_success:
     apply (metis sep_add_cancelD sep_add_commute sep_disj_commuteI)
    apply (clarsimp simp: plus_prod_def)
    apply (drule fun_cong[where x=p], clarsimp simp: plus_fun_def plus_option_def split: option.splits)
-   apply (clarsimp simp: sep_disj_fun_def sep_disj_prod_def sep_disj_option_def split: if_splits, fastforce)
   apply (clarsimp simp: pred_conj_def plus_prod_def)
   apply (clarsimp simp: plus_fun_def plus_option_def sep_disj_fun_def sep_disj_prod_def
                         sep_disj_option_def plus_bool_def sep_disj_bool_def
