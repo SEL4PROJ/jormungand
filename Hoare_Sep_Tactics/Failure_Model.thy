@@ -22,7 +22,6 @@ imports
   "Det_Monad"
 begin
 
-
 instantiation "nat" ::  cancellative_sep_algebra
 begin
  definition "sep_disj_nat (x :: nat) (y :: nat) \<equiv> x = 0 \<or> y = 0"
@@ -39,8 +38,6 @@ instance
   by linarith
 end
 
-
-
 instantiation "list" :: (type) cancellative_sep_algebra
 begin
  definition "zero_list \<equiv> []"
@@ -52,7 +49,8 @@ instance
 end
 
 
-instantiation "prod" :: (cancellative_sep_algebra, cancellative_sep_algebra) cancellative_sep_algebra
+instantiation "prod" :: (cancellative_sep_algebra, cancellative_sep_algebra)
+                         cancellative_sep_algebra
 begin
 instance
   apply (intro_classes; clarsimp simp: sep_disj_prod_def plus_prod_def zero_prod_def)
@@ -67,7 +65,7 @@ instance
 end
 
 type_synonym ('a, 'b) abstract_heap = "('a \<Rightarrow> 'b option) "
-type_synonym ('a, 'b) abstract_ext = "('a, 'b) abstract_heap \<times> ('a \<Rightarrow> nat)  "
+type_synonym ('a, 'b) abstract_ext = "('a, 'b) abstract_heap \<times> ('a, 'b) abstract_heap  "
 
 definition
   maps_to:: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) abstract_ext \<Rightarrow> bool" ("_ \<mapsto>u _" [56,51] 56)
@@ -105,7 +103,6 @@ instantiation option :: (type) minus begin
    by (clarsimp simp: plus_option_def split: option.splits)
  
 end
-
 
 definition "sep_minus x y = ((fst x - fst y) + (snd y - snd x),
                              (snd x - snd y) + (fst y - fst x))"
@@ -182,8 +179,8 @@ notation star (infix "\<circle>" 25)
 
 
 
-lemma sept_snake_gal: "(\<And>s. sept P Q s \<Longrightarrow> R s) \<Longrightarrow> Q s \<Longrightarrow> snake P R s" 
-  apply (unfold   snake_def) 
+lemma sept_snake_gal: "(\<And>s.  (P -o Q) s \<Longrightarrow> R s) \<Longrightarrow> Q s \<Longrightarrow>  (P \<leadsto>o R) s" 
+  apply (unfold snake_def) 
   apply (safe)
   apply (atomize)
   apply (erule_tac x="fst (s - (a,b))" in allE)
@@ -194,7 +191,7 @@ lemma sept_snake_gal: "(\<And>s. sept P Q s \<Longrightarrow> R s) \<Longrightar
   by (metis prod.collapse)
 
 
-lemma star_wand_gal: "(\<And>s. star P Q s \<Longrightarrow> R s) \<Longrightarrow> Q s \<Longrightarrow> wand P R s" 
+lemma star_wand_gal: "(\<And>s. (P \<circle> Q) s \<Longrightarrow> R s) \<Longrightarrow> Q s \<Longrightarrow>  (P \<longrightarrow>o R) s" 
   apply (unfold  wand_def sept_def pred_neg_def) 
   apply (atomize)
   apply (clarify)
@@ -207,7 +204,7 @@ lemma star_wand_gal: "(\<And>s. star P Q s \<Longrightarrow> R s) \<Longrightarr
   using compossible_commute by blast
 
 
-lemma snake_sept_gal: "(\<And>s. Q s \<Longrightarrow> snake P R s) \<Longrightarrow> sept P Q s \<Longrightarrow> R s" 
+lemma snake_sept_gal: "(\<And>s. Q s \<Longrightarrow> (P \<leadsto>o R) s) \<Longrightarrow> (P -o Q) s \<Longrightarrow> R s" 
   apply (clarsimp simp:  sept_def) 
   apply (atomize)
   apply (erule_tac x="aa" in allE)
@@ -220,7 +217,6 @@ lemma snake_sept_gal: "(\<And>s. Q s \<Longrightarrow> snake P R s) \<Longrighta
   using compossible_commute by blast
 
 
-
 lemma [simp]: "\<not>Some x ## Some y" by (clarsimp simp: sep_disj_option_def) 
 
 
@@ -228,8 +224,9 @@ lemma minus_eq_zero[simp]: "x - x = (0 :: 'a \<Rightarrow> 'b option)"
  by (rule ext, clarsimp simp: fun_diff_def minus_option_def zero_fun_def)
 
 
-definition "maps_to' p v \<equiv> \<lambda>s. s = ([p \<mapsto> v], 0)" 
 
+
+definition "maps_to' p v \<equiv> \<lambda>s. s = ([p \<mapsto> v], 0)" 
 
 lemma minus_zero[simp]: "x - 0 = (x :: ('a, 'b) abstract_heap)" 
  by (clarsimp simp: fun_diff_def zero_fun_def)
@@ -241,38 +238,41 @@ lemma zero_le[simp]: "0 \<preceq> x"
   apply (clarsimp simp: sep_substate_def)
 done
 
+term "p \<mapsto>u v"
+
 lemma septraction_maps_to_minus_heaplet: 
-  "sept (maps_to' p v) (maps_to' p v) (s :: ('a, 'b) abstract_ext') \<Longrightarrow> \<box> s"
-  apply (clarsimp simp: sept_def maps_to'_def sep_minus_def zero_fun_def sep_empty_def)
+  " (p \<mapsto>u v -o (p \<mapsto>u v)) (s :: ('a, 'b) abstract_ext) \<Longrightarrow> \<box> s"
+  apply (clarsimp simp: sept_def maps_to_def sep_minus_def zero_fun_def sep_empty_def)
   apply (clarsimp simp: prod_eq_iff) 
   apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
 done
 
-lemma septraction_empty_minus: "sept (sep_empty) (R) (s :: ('a, 'b) abstract_ext') \<Longrightarrow> (R) s"
-  apply (clarsimp simp: sept_def maps_to'_def sep_minus_def zero_fun_def sep_empty_def)
+lemma septraction_empty_minus: " (\<box> -o R) (s :: ('a, 'b) abstract_ext) \<Longrightarrow> R s"
+  apply (clarsimp simp: sept_def maps_to_def sep_minus_def zero_fun_def sep_empty_def)
   apply (clarsimp simp: prod_eq_iff) 
   apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
 done
 
-lemma septraction_maps_to_empty:"sept (maps_to' p v) (sep_empty) (s :: ('a, 'b) abstract_ext') 
-    \<Longrightarrow> (maps_to' p v) (snd s, fst s)"
-  apply (clarsimp simp: sept_def maps_to'_def sep_minus_def zero_fun_def sep_empty_def)
-  apply (clarsimp simp: prod_eq_iff) 
-  apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
-  apply (rule ext, clarsimp)
-done
-
-lemma "sept (maps_to' p v) (\<lambda>s. s = ([p \<mapsto> v], [p \<mapsto> v])) (s :: ('a, 'b) abstract_ext') 
-    \<Longrightarrow> (maps_to' p v) (snd s, fst s)" 
-  apply (clarsimp simp: sept_def maps_to'_def sep_minus_def zero_fun_def sep_empty_def)
+lemma septraction_maps_to_empty:" (maps_to p v -o \<box>) (s :: ('a, 'b) abstract_ext) 
+    \<Longrightarrow> (maps_to p v) (snd s, fst s)"
+  apply (clarsimp simp: sept_def maps_to_def sep_minus_def zero_fun_def sep_empty_def)
   apply (clarsimp simp: prod_eq_iff) 
   apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
   apply (rule ext, clarsimp)
 done
 
-lemma septraction_fail_maps_to:"sept (maps_to' p v) (\<lambda>s. s = (0, [p \<mapsto> v])) (s :: ('a, 'b) abstract_ext') 
-    \<Longrightarrow> (maps_to' p v) (snd s, fst s)" 
-  apply (clarsimp simp: sept_def maps_to'_def)
+lemma " ( p \<mapsto>u v -o (\<lambda>s. s = ([p \<mapsto> v], [p \<mapsto> v]))) (s :: ('a, 'b) abstract_ext) 
+    \<Longrightarrow> (p \<mapsto>u v) (snd s, fst s)" 
+  apply (clarsimp simp: sept_def maps_to_def sep_minus_def zero_fun_def sep_empty_def)
+  apply (clarsimp simp: prod_eq_iff) 
+  apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
+  apply (rule ext, clarsimp)
+done
+
+lemma septraction_fail_maps_to:
+        " (p \<mapsto>u v -o (\<lambda>s. s = (0, [p \<mapsto> v]))) (s :: ('a, 'b) abstract_ext) 
+    \<Longrightarrow> (p \<mapsto>u v) (snd s, fst s)" 
+  apply (clarsimp simp: sept_def maps_to_def)
   apply (clarsimp simp:  maps_to'_def sep_minus_def zero_fun_def sep_empty_def)
   apply (clarsimp simp: prod_eq_iff) 
   apply (clarsimp simp: plus_fun_def zero_prod_def zero_fun_def)
@@ -333,8 +333,8 @@ lemma [simp]: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = (0 :: ('a, 'b) a
  by (clarsimp)
 
 lemma delete_ptr_spU:
-  "\<lbrace>project R\<rbrace> delete_ptr p  \<lbrace>\<lambda>_. project (sept  (\<lambda>s. \<exists>v. maps_to' p v s) R ) \<rbrace>u" 
- apply (clarsimp simp: delete_ptr_def)
+  "\<lbrace><R>\<rbrace> delete_ptr p  \<lbrace>\<lambda>_. < ( p \<mapsto>u - -o R )> \<rbrace>u" 
+  apply (clarsimp simp: delete_ptr_def)
   apply (rule hoare_seq_extU[rotated])
    apply (rule modify_wpU)
   apply (rule hoare_chainU[OF state_assert_wpU, rotated])
@@ -342,56 +342,56 @@ lemma delete_ptr_spU:
   apply (clarsimp) 
   apply (clarsimp simp: project_def to_flag_def)
   apply (case_tac "a p = None"; case_tac "ba p = None" )
-  apply (rule_tac x="ba + [p \<mapsto> undefined] " in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> undefined]" in exI)
-    apply (rule_tac x="0" in exI)
- apply (intro conjI)
-  apply (clarsimp simp: maps_to'_def maps_to_def, fastforce)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp:  zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp: sep_minus_def)
-  apply (intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (rule iffI; clarsimp)
-  apply (rule_tac x=ba in exI)
-  apply (clarsimp simp: sept_def, intro conjI)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
-  apply (rule_tac x=0 in exI)
-  apply (intro conjI; clarsimp?)
-  apply (fastforce simp: maps_to'_def)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (clarsimp simp: zero_fun_def zero_option_def)
-  apply (clarsimp)
-  apply (rule_tac x=ba in exI)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
-  apply (rule_tac x="0" in exI)
-  apply (intro conjI, fastforce simp: maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x=ba in exI)
-  apply (clarsimp, intro conjI)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; (clarsimp simp: zero_option_def)?)
- apply (clarsimp simp: plus_fun_def)
+     apply (rule_tac x="ba + [p \<mapsto> undefined] " in exI)
+     apply (intro conjI)
+      apply (clarsimp simp: sept_def)
+      apply (rule_tac x="[p \<mapsto> undefined]" in exI)
+      apply (rule_tac x="0" in exI)
+      apply (intro conjI)
+       apply (clarsimp simp: maps_to_ex_def maps_to_def, fastforce)
+      apply (rule exI, rule exI, intro conjI, assumption)
+       apply (clarsimp simp:  zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+      apply (clarsimp simp: sep_minus_def)
+      apply (intro conjI ext; clarsimp?)
+      apply (clarsimp simp: plus_fun_def)
+     apply (rule iffI; clarsimp)
+    apply (rule_tac x=ba in exI)
+    apply (clarsimp simp: sept_def, intro conjI)
+     apply (rule_tac x="[p \<mapsto> y]" in exI)
+     apply (rule_tac x=0 in exI)
+     apply (intro conjI; clarsimp?)
+      apply (fastforce simp: maps_to_ex_def maps_to_def)
+     apply (rule exI, rule exI, intro conjI, assumption)
+      apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+     apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+     apply (clarsimp simp: plus_fun_def)
+    apply (clarsimp simp: zero_fun_def zero_option_def)
+   apply (clarsimp)
+   apply (rule_tac x=ba in exI)
+   apply (clarsimp simp: sept_def)
+   apply (rule_tac x="[p \<mapsto> y]" in exI)
+   apply (rule_tac x="0" in exI)
+   apply (intro conjI, fastforce simp: maps_to_ex_def maps_to_def)
+   apply (rule_tac x=a in exI)
+   apply (rule_tac x=ba in exI)
+   apply (clarsimp, intro conjI)
+    apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+   apply (clarsimp simp: sep_minus_def, intro conjI ext; (clarsimp simp: zero_option_def)?)
+   apply (clarsimp simp: plus_fun_def)
   apply (rule_tac x=ba in exI, simp)
   apply (clarsimp simp: sept_def)
   apply (rule_tac x="[p \<mapsto> y]" in exI)
   apply (rule_tac x=0 in exI)
   apply (intro conjI)
-  apply (fastforce simp: maps_to'_def)
+   apply (fastforce simp: maps_to_ex_def maps_to_def)
   apply (rule_tac x=a in exI, rule_tac x=ba in exI)
   apply (clarsimp)
   apply (intro conjI)
-  apply (clarsimp simp: compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp:  zero_fun_def)
+   apply (clarsimp simp: compossible_prod_def compossible_fun_def compossible_option_def)
+   apply (clarsimp simp:  zero_fun_def)
   apply (clarsimp simp: sep_minus_def, intro conjI ext; (clarsimp simp: zero_option_def)?)
   apply (clarsimp simp: plus_fun_def)
-done
+  done
 
 definition
   "set_ptr p v = do {
@@ -410,88 +410,88 @@ lemma [simp]: "x ## None" by (clarsimp simp: sep_disj_option_def split: option.s
 
 
 lemma set_ptr_spU:
-  "\<lbrace>project R\<rbrace> set_ptr p v  \<lbrace>\<lambda>_. project (maps_to' p v \<and>* sept  (\<lambda>s. \<exists>v. maps_to' p v s) R ) \<rbrace>u"
+  "\<lbrace><R>\<rbrace> set_ptr p v  \<lbrace>\<lambda>_. < (maps_to' p v \<and>* sept  (\<lambda>s. \<exists>v. maps_to' p v s) R )> \<rbrace>u"
   apply (clarsimp simp: set_ptr_def) 
-   apply (rule hoare_seq_extU[rotated])
+  apply (rule hoare_seq_extU[rotated])
    apply (rule modify_wpU)
   apply (rule hoare_chainU[OF state_assert_wpU, rotated])
    apply (assumption)
   apply (clarsimp) 
   apply (clarsimp simp: project_def to_flag_def)
   apply (case_tac "a p = None"; case_tac "ba p = None"; clarsimp?)
-  apply (rule_tac x="ba + ([p \<mapsto> v])" in exI)
+     apply (rule_tac x="ba + ([p \<mapsto> v])" in exI)
+     apply (intro conjI)
+      apply (clarsimp simp: sep_conj_def maps_to'_def)
+      apply (rule_tac x=a in exI)
+      apply (rule_tac x="ba + ([p \<mapsto> v])" in exI)
+      apply (intro conjI)
+        apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
+       apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
+      apply (clarsimp simp: sept_def)
+      apply (rule_tac x="[p \<mapsto> v]" in exI)
+      apply (intro conjI; clarsimp?)
+       apply (fastforce)
+      apply (rule exI, rule exI, intro conjI, assumption)
+       apply (clarsimp simp: compossible_prod_def compossible_fun_def
+                             compossible_option_def zero_fun_def)
+      apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+      apply (clarsimp simp: plus_fun_def)
+     apply (clarsimp)
+    apply (rule_tac x="ba" in exI)
+    apply (intro conjI)
+     apply (clarsimp simp: sep_conj_def maps_to'_def)
+     apply (rule_tac x=a in exI)
+     apply (rule_tac x="ba + ([p \<mapsto> y])" in exI)
+     apply (intro conjI)
+       apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
+      apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
+     apply (clarsimp simp: sept_def)
+     apply (rule_tac x="[p \<mapsto> y]" in exI)
+     apply (intro conjI; clarsimp?)
+      apply (fastforce)
+     apply (rule exI, rule exI, intro conjI, assumption)
+      apply (clarsimp simp: compossible_prod_def compossible_fun_def 
+                            compossible_option_def  zero_fun_def)
+     apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+     apply (clarsimp simp: plus_fun_def)
+    apply (clarsimp simp: zero_fun_def zero_option_def)
+   apply (rule_tac x="ba" in exI)
+   apply (intro conjI)
+    apply (clarsimp simp: sep_conj_def maps_to'_def)
+    apply (rule_tac x="a - [p \<mapsto> y]" in exI)
+    apply (rule_tac x="ba" in exI)
+    apply (intro conjI)
+      apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
+     apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
+    apply (clarsimp simp: sept_def)
+    apply (rule_tac x="[p \<mapsto> y]" in exI)
+    apply (intro conjI; clarsimp?)
+     apply (fastforce)
+    apply (rule exI, rule exI, intro conjI, assumption)
+     apply (clarsimp simp: compossible_prod_def compossible_fun_def
+                           compossible_option_def zero_fun_def )
+    apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+    apply (clarsimp simp: plus_fun_def)
+   apply (clarsimp)
+  apply (rule_tac x="ba" in exI)
   apply (intro conjI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x="ba + ([p \<mapsto> v])" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> v]" in exI)
-  apply (intro conjI; clarsimp?)
-  apply (fastforce)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp: compossible_prod_def compossible_fun_def
-                        compossible_option_def zero_fun_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
+   apply (clarsimp simp: sep_conj_def maps_to'_def)
+   apply (rule_tac x="a - [p \<mapsto> y]" in exI)
+   apply (rule_tac x="ba" in exI)
+   apply (intro conjI)
+     apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def minus_option_def sep_minus_def )
+    apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
+   apply (clarsimp simp: sept_def)
+   apply (rule_tac x="[p \<mapsto> y]" in exI)
+   apply (intro conjI; clarsimp?)
+    apply (fastforce)
+   apply (rule exI, rule exI, intro conjI, assumption)
+    apply (clarsimp simp: compossible_prod_def compossible_fun_def
+                          compossible_option_def zero_fun_def )
+   apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+   apply (clarsimp simp: plus_fun_def)
   apply (clarsimp)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x="ba + ([p \<mapsto> y])" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
-  apply (intro conjI; clarsimp?)
-  apply (fastforce)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp: compossible_prod_def compossible_fun_def 
-                        compossible_option_def  zero_fun_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (clarsimp simp: zero_fun_def zero_option_def)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x="a - [p \<mapsto> y]" in exI)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
-  apply (intro conjI; clarsimp?)
-  apply (fastforce)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp: compossible_prod_def compossible_fun_def
-                        compossible_option_def zero_fun_def )
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (clarsimp)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x="a - [p \<mapsto> y]" in exI)
-  apply (rule_tac x="ba" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def minus_option_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="[p \<mapsto> y]" in exI)
-  apply (intro conjI; clarsimp?)
-  apply (fastforce)
-  apply (rule exI, rule exI, intro conjI, assumption)
-  apply (clarsimp simp: compossible_prod_def compossible_fun_def
-                        compossible_option_def zero_fun_def )
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (clarsimp)
-done
+  done
 
 definition
   "get_ptr p = do {
@@ -503,135 +503,125 @@ definition
 
 lemma "v \<noteq> v' \<Longrightarrow> sept (maps_to' p v) (\<lambda>(x,y). maps_to' p v' (y,x)) (0, [p \<mapsto> v'])" 
   apply (clarsimp simp: sept_def maps_to'_def, intro conjI)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def )
+   apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def )
   apply (rule prod_eqI; clarsimp simp: zero_prod_def, rule ext)
+   apply (clarsimp simp: zero_fun_def sep_minus_def plus_fun_def) 
   apply (clarsimp simp: zero_fun_def sep_minus_def plus_fun_def) 
-  apply (clarsimp simp: zero_fun_def sep_minus_def plus_fun_def) 
-apply (clarsimp simp: plus_option_def)
-done
+  apply (clarsimp simp: plus_option_def)
+  done
 
 lemma get_ptr_spU:
-  "\<lbrace>project R\<rbrace> get_ptr p  
-   \<lbrace>\<lambda>rv s.  project (maps_to' p rv \<and>* sept (maps_to' p rv) R ) s \<rbrace>u"
+  "\<lbrace><R>\<rbrace> get_ptr p  
+   \<lbrace>\<lambda>rv s.  < (maps_to' p rv \<and>* sept (maps_to' p rv) R )> s \<rbrace>u"
   apply (clarsimp simp: get_ptr_def) 
+  apply (rule hoare_seq_extU[rotated])
    apply (rule hoare_seq_extU[rotated])
-      apply (rule hoare_seq_extU[rotated])
-            apply (rule hoare_seq_extU[rotated])
-    apply (rule return_wpU)
+    apply (rule hoare_seq_extU[rotated])
+     apply (rule return_wpU)
     apply (rule modify_wpU)
-    apply (rule assert_wpU)
+   apply (rule assert_wpU)
   apply (rule hoare_chainU[OF get_wpU, rotated])
    apply (assumption)
   apply (clarsimp) 
   apply (clarsimp simp: project_def to_flag_def)
   apply (case_tac "ba = 0"; simp) 
-  apply (case_tac "a p = None"; clarsimp?)
-  apply (rule_tac x="([p \<mapsto> the (a p)])" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x="([p \<mapsto> the (a p)])" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def) 
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac x="a" in exI, rule_tac x="0" in exI, clarsimp)
-  apply (intro conjI; clarsimp?)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: plus_fun_def)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x="a - [p \<mapsto> y]"  in exI)
-  apply (rule_tac x="0" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
-  apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
-  apply (clarsimp simp: sept_def)
+   apply (case_tac "a p = None"; clarsimp?)
+    apply (rule_tac x="([p \<mapsto> the (a p)])" in exI)
+    apply (intro conjI)
+     apply (clarsimp simp: sep_conj_def maps_to'_def)
+     apply (rule_tac x=a in exI)
+     apply (rule_tac x="([p \<mapsto> the (a p)])" in exI)
+     apply (intro conjI)
+       apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
+      apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def) 
+     apply (clarsimp simp: sept_def)
+     apply (rule_tac x="a" in exI, rule_tac x="0" in exI, clarsimp)
+     apply (intro conjI; clarsimp?)
+      apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+     apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+    apply (clarsimp simp: plus_fun_def)
+   apply (clarsimp simp: sep_conj_def maps_to'_def)
+   apply (rule_tac x="a - [p \<mapsto> y]"  in exI)
+   apply (rule_tac x="0" in exI)
+   apply (intro conjI)
+     apply (clarsimp simp: sep_disj_prod_def; clarsimp simp: sep_disj_fun_def sep_minus_def )
+    apply (rule; intro ext, clarsimp simp: plus_prod_def zero_fun_def  plus_fun_def)
+   apply (clarsimp simp: sept_def)
    apply (rule_tac x="a" in exI, rule_tac x="0" in exI, clarsimp)
-  apply (intro conjI; clarsimp?)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
-  apply (clarsimp simp: zero_fun_def)
+   apply (intro conjI; clarsimp?)
+    apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+   apply (clarsimp simp: sep_minus_def, intro conjI ext; clarsimp?)
+   apply (clarsimp simp: zero_fun_def)
   apply (case_tac "a p = None"; case_tac "ba p";  clarsimp?)
-  apply (rule_tac x="ba + [p \<mapsto> the (a p)]" in exI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x="ba + [p \<mapsto> the (a p)]" in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
-  apply (rule prod_eqI; rule ext, clarsimp)
-  apply (clarsimp simp: plus_prod_def plus_fun_def)
-
-  apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
-  apply (rule_tac x="ba" in exI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x=a in exI)
-  apply (rule_tac x="ba " in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
-  apply (rule prod_eqI; rule ext, clarsimp)
-  apply (clarsimp simp: plus_prod_def plus_fun_def)
-  apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
-  apply (clarsimp simp: plus_option_def)
+     apply (rule_tac x="ba + [p \<mapsto> the (a p)]" in exI)
+     apply (clarsimp simp: sep_conj_def maps_to'_def)
+     apply (rule_tac x=a in exI)
+     apply (rule_tac x="ba + [p \<mapsto> the (a p)]" in exI)
+     apply (intro conjI)
+       apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
+      apply (rule prod_eqI; rule ext, clarsimp)
+       apply (clarsimp simp: plus_prod_def plus_fun_def)
+      apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
+     apply (clarsimp simp: sept_def)
+     apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
+      apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+     apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
+    apply (rule_tac x="ba" in exI)
+    apply (clarsimp simp: sep_conj_def maps_to'_def)
+    apply (rule_tac x=a in exI)
+    apply (rule_tac x="ba " in exI)
+    apply (intro conjI)
+      apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
+     apply (rule prod_eqI; rule ext, clarsimp)
+      apply (clarsimp simp: plus_prod_def plus_fun_def)
+     apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
+    apply (clarsimp simp: sept_def)
+    apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
+     apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+    apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
+    apply (clarsimp simp: plus_option_def)
+   apply (rule_tac x="ba" in exI)
+   apply (clarsimp simp: sep_conj_def maps_to'_def)
+   apply (rule_tac x="a - [p \<mapsto> the (a p)]" in exI)
+   apply (rule_tac x="ba " in exI)
+   apply (intro conjI)
+     apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
+    apply (clarsimp simp: minus_option_def)
+    apply (rule prod_eqI; rule ext, clarsimp)
+     apply (clarsimp simp: plus_prod_def plus_fun_def)
+    apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
+   apply (clarsimp simp: minus_option_def)
+   apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
+   apply (clarsimp simp: sept_def)
+   apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
+    apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+   apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
   apply (rule_tac x="ba" in exI)
   apply (clarsimp simp: sep_conj_def maps_to'_def)
   apply (rule_tac x="a - [p \<mapsto> the (a p)]" in exI)
   apply (rule_tac x="ba " in exI)
   apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def)
-  apply (clarsimp simp: minus_option_def)
-  apply (rule prod_eqI; rule ext, clarsimp)
-  apply (clarsimp simp: plus_prod_def plus_fun_def)
-  apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
-  apply (clarsimp simp: minus_option_def)
-  apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
+    apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def minus_option_def)
+   apply (rule prod_eqI; rule ext, clarsimp)
+    apply (clarsimp simp: plus_prod_def plus_fun_def minus_option_def)
+   apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
   apply (clarsimp simp: sept_def)
   apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
-  apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def)
-  apply (rule_tac x="ba" in exI)
-  apply (clarsimp simp: sep_conj_def maps_to'_def)
-  apply (rule_tac x="a - [p \<mapsto> the (a p)]" in exI)
-  apply (rule_tac x="ba " in exI)
-  apply (intro conjI)
-  apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def zero_fun_def minus_option_def)
-  apply (rule prod_eqI; rule ext, clarsimp)
-  apply (clarsimp simp: plus_prod_def plus_fun_def minus_option_def)
-  apply (clarsimp simp: plus_prod_def plus_fun_def zero_fun_def)
-  apply (clarsimp simp: sept_def)
-  apply (rule_tac exI, rule_tac exI, intro conjI, fastforce)
-  apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
+   apply (clarsimp simp: zero_fun_def compossible_prod_def compossible_fun_def compossible_option_def)
   apply (rule prod_eqI; rule ext, clarsimp simp: sep_minus_def plus_fun_def zero_fun_def minus_option_def)
-done
+  done
 
-
-
-
-
-
-
-
-
-
-
-lemma sept_cancel: "sept P R s \<Longrightarrow> (\<And>s. P s \<Longrightarrow> P' s) \<Longrightarrow> (\<And>s. R s \<Longrightarrow> R' s)  \<Longrightarrow> sept P' R' s"
+lemma sept_cancel: 
+   "sept P R s \<Longrightarrow> (\<And>s. P s \<Longrightarrow> P' s) \<Longrightarrow> (\<And>s. R s \<Longrightarrow> R' s)  \<Longrightarrow> sept P' R' s"
   apply (clarsimp simp: sept_def)
   apply (rule_tac x=a in exI)
   apply (rule_tac x=b in exI)
   apply (intro conjI, fastforce)
   apply (rule exI)+
   apply (intro conjI, fastforce)
+   apply (clarsimp)
   apply (clarsimp)
-  apply (clarsimp)
-done
+  done
 
 lemma sep_disj_fun_def'[dest]: "x ## y \<Longrightarrow> x v ## y v" 
  by (fastforce simp: sep_disj_fun_def)  
@@ -639,15 +629,16 @@ lemma sep_disj_fun_def'[dest]: "x ## y \<Longrightarrow> x v ## y v"
 lemma sep_disj_some_eq[simp]: "Some x ## y \<longleftrightarrow> y = None" 
  by (auto simp: sep_disj_option_def)  
 
-lemma sep_minus_disj_plus[simp]: "x ## y \<Longrightarrow> sep_minus (x + y) y = (x :: ('a, 'b) abstract_ext')" 
+lemma sep_minus_disj_plus[simp]: 
+  "x ## y \<Longrightarrow> sep_minus (x + y) y = (x :: ('a, 'b) abstract_ext')" 
   apply (auto simp: prod_eq_iff sep_disj_prod_def plus_prod_def sep_minus_def; rule ext)[1]
+   apply (clarsimp simp: plus_fun_def fun_diff_def)
+   apply (smt minus_option_def option.case_eq_if plus_option_def 
+      sep_disj_fun_def sep_disj_option_def zero_option_def)
   apply (clarsimp simp: plus_fun_def fun_diff_def)
   apply (smt minus_option_def option.case_eq_if plus_option_def 
-       sep_disj_fun_def sep_disj_option_def zero_option_def)
-    apply (clarsimp simp: plus_fun_def fun_diff_def)
- apply (smt minus_option_def option.case_eq_if plus_option_def 
-       sep_disj_fun_def sep_disj_option_def zero_option_def)
-done
+      sep_disj_fun_def sep_disj_option_def zero_option_def)
+  done
 
 lemma sep_minus_disj_plus'[simp]:"y ## x \<Longrightarrow> sep_minus (x + y) y = (x :: ('a, 'b) abstract_ext')" 
   by (clarsimp simp: sep_disj_commute)
@@ -667,7 +658,7 @@ lemma sep_add_minus_eq: "x ## y \<Longrightarrow> y \<preceq> z \<Longrightarrow
 
 lemma sep_disj_minus_pair: "y && x \<Longrightarrow> 
     snd x ## fst x \<Longrightarrow> 
-    x ## sep_minus y (x :: ('a, 'b) abstract_ext')" 
+    x ##  sep_minus y  (x :: ('a, 'b) abstract_ext')" 
   apply (clarsimp simp: sep_disj_prod_def, intro conjI)
   apply (clarsimp simp: sep_minus_def)
   apply (unfold sep_disj_fun_def,
@@ -695,27 +686,22 @@ definition
 
 definition "maps_to'_ex p \<equiv> \<lambda>s. \<exists> v. maps_to' p v s"
 
-
-
 lemma sept_cancel1: " (\<And>s. R s \<Longrightarrow> R' s) \<Longrightarrow> sept P R s \<Longrightarrow> sept P R' s"
    by (erule (1) sept_cancel)
 
 lemma move_ptr_spU:
-  "\<lbrace>project R\<rbrace> move_ptr p p' 
-   \<lbrace>\<lambda>_. EXS v. project (maps_to' p' v \<and>* (sept (maps_to'_ex p') (maps_to' p v \<and>* sept (maps_to' p v) R) )) \<rbrace>u"
+  "\<lbrace><R>\<rbrace> move_ptr p p' 
+   \<lbrace>\<lambda>_.  
+    <EXS v. (maps_to' p' v \<and>* (sept (maps_to'_ex p') (maps_to' p v \<and>* sept (maps_to' p v) R) ))> \<rbrace>u"
  apply (clarsimp simp: move_ptr_def)
    apply (rule hoare_seq_extU)
    apply (rule get_ptr_spU)
    apply (rule hoare_chainU[rotated 3])
     apply (rule set_ptr_spU, assumption)
+apply (erule projectE)
   apply (rule_tac x=x in exI)
-  apply (clarsimp simp: project_def)
-  apply (rule_tac x=aa in exI)
-  apply (rule_tac x=ba in exI)
-  apply (intro conjI)
  apply (sep_cancel)
 apply (erule sept_cancel, fastforce simp: maps_to'_ex_def)
- apply (assumption)
  apply (assumption)
 done
 
@@ -777,6 +763,22 @@ lemma sept_maps_to_snake: "
   by (simp add: option.case_eq_if plus_option_def zero_option_def)
 
 lemma sept_maps_to_ex: "sept (maps_to'_ex p) (maps_to' p y \<and>* R) h \<Longrightarrow> R h"
+ apply (clarsimp simp: sept_def maps_to'_def maps_to'_ex_def sep_conj_def)
+ apply (erule back_subst[where P=R])
+ apply (rule prod_eqI; rule ext; clarsimp simp: sep_minus_def plus_prod_def)
+ apply (clarsimp simp: compossible_prod_def compossible_fun_def 
+ plus_fun_def minus_option_def plus_option_def zero_option_def zero_fun_def)
+  apply (smt fun_upd_same minus_option_def 
+    minus_some_simp option.case_eq_if option.distinct(1) compossible_fun_def 
+ prod.sel(1) sep_disj_fun_def' sep_disj_prod_def sep_disj_some_eq zero_option_def)
+ apply (clarsimp simp: compossible_prod_def compossible_fun_def 
+ plus_fun_def minus_option_def plus_option_def zero_option_def zero_fun_def)
+  apply (smt fun_upd_same minus_option_def 
+    minus_some_simp option.case_eq_if option.distinct(1) compossible_fun_def 
+ prod.sel(1) sep_disj_fun_def' sep_disj_prod_def sep_disj_some_eq zero_option_def)
+done
+
+lemma sept_maps_to_ex': "sept (maps_to'_ex p) (maps_to'_ex p  \<and>* R) h \<Longrightarrow> R h"
  apply (clarsimp simp: sept_def maps_to'_def maps_to'_ex_def sep_conj_def)
  apply (erule back_subst[where P=R])
  apply (rule prod_eqI; rule ext; clarsimp simp: sep_minus_def plus_prod_def)
@@ -1112,39 +1114,47 @@ lemma "\<lbrace>R\<rbrace> new_ptr
  apply (rule ext, clarsimp simp: plus_option_def split: option.splits)
  apply (fastforce)
   apply (smt tfl_some)
-done                   
+done        
 
-lemma "\<lbrace>R\<rbrace> new_ptr 
-       \<lbrace>\<lambda>rv s. if rv \<noteq> 0 then (maps_to'_ex rv \<and>* R) s else 
-               (R s \<and>  (\<forall>p. p \<noteq> 0 \<longrightarrow> (maps_to'_ex p \<and>* sep_true) s)) \<rbrace>u"
+           
+term project
+lemma new_ptr_spU:"\<lbrace>project R\<rbrace> 
+       new_ptr 
+       \<lbrace>\<lambda>rv. project (\<lambda>s. if rv \<noteq> 0 then (maps_to'_ex rv \<and>* R) s else 
+               (R s \<and>  (\<forall>p. p \<noteq> 0 \<longrightarrow> (maps_to'_ex p \<and>* sep_true) s))) \<rbrace>u"
  apply (clarsimp simp: new_ptr_def)
  apply (clarsimp simp: validU_def bind_def get_def modify_def put_def return_def)
  apply (intro conjI impI allI )
- apply (clarsimp simp: sep_conj_def maps_to'_ex_def maps_to'_def)
+ apply (clarsimp simp: project_def)
+ apply (clarsimp simp: to_flag_def)
+ apply (rule_tac x=b in exI)
+ apply (clarsimp, intro conjI impI)
+ apply (clarsimp simp: sep_conj_def maps_to'_ex_def maps_to'_def project_def to_flag_def)
  apply (rule_tac x="[select s \<mapsto> 0]" in exI)
- apply (rule_tac x=s in exI, rule_tac x=f in exI)
+ apply (rule_tac x=s in exI, rule_tac x=b in exI)
  apply (clarsimp; intro conjI)
- apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def select_def free_def)
+ apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def select_def free_def zero_fun_def)
   apply (metis (mono_tags, lifting) someI)
  apply (rule prod_eqI; clarsimp simp: plus_prod_def plus_fun_def)
  apply (rule ext, clarsimp simp: plus_option_def split: option.splits)
+ apply (clarsimp simp: zero_fun_def)
  apply (fastforce)
  apply (clarsimp simp: free_def select_def)
  apply (smt tfl_some)
  apply (clarsimp simp: free_def select_def)
  apply (smt tfl_some)
+ apply (clarsimp simp: project_def to_flag_def)
+ apply (rule_tac x=b in exI)
  apply (clarsimp simp: free_def select_def)
  apply (erule_tac x=p in allE)
  apply (clarsimp)
  apply (clarsimp simp: sep_conj_def maps_to'_ex_def maps_to'_def)
  apply (rule_tac x="[p \<mapsto> y]" in exI)
  apply (rule_tac x="s - [p \<mapsto> y] " in exI)
- apply (rule_tac x="f" in exI)
- apply (clarsimp simp: sep_disj_prod_def sep_disj_fun_def plus_prod_def plus_fun_def)
+ apply (rule_tac x="b" in exI)
+ apply (clarsimp simp: zero_fun_def sep_disj_prod_def sep_disj_fun_def plus_prod_def plus_fun_def)
  apply (intro conjI)
 by auto
-
- 
  
 definition "swap_ptr p q = do {
                 x <- get_ptr p;
@@ -1170,9 +1180,16 @@ lemma sept_maps_to_ex_snake:
  apply (erule sept_maps_to_ex)
 done
 
+lemma sept_maps_to_ex_snake': 
+ "(maps_to'_ex p  \<and>* R) h \<Longrightarrow> (\<And>s. R s \<Longrightarrow> R' s) \<Longrightarrow> (maps_to'_ex p \<leadsto>o R') h"
+ apply (drule sep_conj_impl[where Q'=R'], assumption, clarsimp)
+ apply (sep_lift_snake)
+ apply (erule sept_maps_to_ex')
+done
+
 lemma swap_ptr_validU: 
-"\<lbrace>project (maps_to' p i \<and>* maps_to' q j \<and>* R)\<rbrace> swap_ptr p q 
- \<lbrace>\<lambda>_. project (maps_to' p j \<and>* maps_to' q i \<and>* R)\<rbrace>u"
+"\<lbrace><(maps_to' p i \<and>* maps_to' q j \<and>* R)>\<rbrace> swap_ptr p q 
+ \<lbrace>\<lambda>_. < (maps_to' p j \<and>* maps_to' q i \<and>* R)>\<rbrace>u"
  apply (clarsimp simp: swap_ptr_def)
  apply (rule hoare_seq_extU | rule get_ptr_spU set_ptr_spU)+
  apply (rule hoare_chainU[OF set_ptr_spU], assumption)
@@ -1183,17 +1200,50 @@ lemma swap_ptr_validU:
  by (sep_erule (direct) sept_maps_to_snake sept_maps_to_ex_snake | sep_lift |
         clarsimp simp: sep_conj_ac)+
 
+definition "swap_ptr_heap_alloc p q = do {
+                tmp <- new_ptr;
+                move_ptr p tmp;
+                move_ptr q p;
+                move_ptr tmp q;
+                delete_ptr tmp
+}"
+
+lemma swap_ptr_heap_alloc:
+  "\<lbrace><(maps_to' (p :: nat) v \<and>* maps_to' q v')>\<rbrace> swap_ptr_heap_alloc p q 
+   \<lbrace>\<lambda>_ . <(maps_to' p v' \<and>* maps_to' q v)> \<rbrace>u"
+  apply (clarsimp simp: swap_ptr_heap_alloc_def )
+  apply (sp sp: new_ptr_spU move_ptr_spU delete_ptr_spU)
+  apply (erule projectE)
+  apply (clarsimp)
+  apply (fold maps_to'_ex_def)
+  apply (sep_invert | clarsimp)+
+  apply (case_tac "x=0"; simp)
+   defer
+   apply  ((sep_erule (direct) sept_maps_to_ex_snake' sept_maps_to_snake sept_maps_to_ex_snake | sep_lift |
+        clarsimp simp: sep_conj_ac)+)[1]
+  apply (subgoal_tac "\<exists>ptr. ptr \<noteq> p \<and> ptr \<noteq> q \<and> ptr \<noteq> 0")
+   apply (clarsimp)
+   apply (erule_tac x=ptr in allE)
+   apply (clarsimp)
+   apply (clarsimp simp: sep_conj_def maps_to'_def maps_to'_ex_def)
+   apply (clarsimp simp: plus_prod_def)
+   apply (drule_tac x=ptr in fun_cong)
+   apply (clarsimp simp: plus_fun_def)
+   apply (metis option.case_eq_if option.simps(3) plus_option_def)
+  apply (rule_tac x="p + q + 1" in exI)
+  apply (clarsimp)
+  done
+
 lemma move_ptr_validU:
-  "\<lbrace>project (maps_to' p v \<and>* maps_to' p' v' \<and>* R)\<rbrace> move_ptr p p' 
-   \<lbrace>\<lambda>_ . project (maps_to' p v \<and>* maps_to' p' v \<and>* R) \<rbrace>u"
+  "\<lbrace>< (maps_to' p v \<and>* maps_to' p' v' \<and>* R)>\<rbrace> move_ptr p p' 
+   \<lbrace>\<lambda>_ . <(maps_to' p v \<and>* maps_to' p' v \<and>* R)> \<rbrace>u"
  apply (rule hoare_chainU)
  apply (rule move_ptr_spU, assumption)
  apply (clarsimp)
- apply (erule projectE)
+ apply (erule projectE, clarsimp)
  apply (sep_invert)
  by (sep_erule (direct) sept_maps_to_snake sept_maps_to_ex_snake | sep_lift |
         clarsimp simp: sep_conj_ac)+
-
 
 lemma sep_positive_nonerasure:
 "(\<And>s s'. P s \<Longrightarrow> R (snd s') \<Longrightarrow> 
@@ -1208,9 +1258,6 @@ lemma sep_positive_nonerasure:
  apply (clarsimp simp: plus_fun_def)
  apply (clarsimp simp: plus_option_def minus_option_def zero_option_def split: option.splits)
   by (metis not_Some_eq)
-
-
-   
 
 
 end
