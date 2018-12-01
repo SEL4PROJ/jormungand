@@ -513,7 +513,7 @@ lemma "v \<noteq> v' \<Longrightarrow> sept (maps_to p v) (\<lambda>(x,y). maps_
 
 lemma get_ptr_spU:
   "\<lbrace><R>\<rbrace> get_ptr p  
-   \<lbrace>\<lambda>rv s.  < (maps_to p rv \<and>* sept (maps_to p rv) R )> s \<rbrace>u"
+   \<lbrace>\<lambda>rv s.  < ( p \<mapsto>u rv \<and>* sept (p \<mapsto>u rv) R )> s \<rbrace>u"
   apply (clarsimp simp: get_ptr_def) 
   apply (rule hoare_seq_extU[rotated])
    apply (rule hoare_seq_extU[rotated])
@@ -691,7 +691,7 @@ lemma sept_cancel1: " (\<And>s. R s \<Longrightarrow> R' s) \<Longrightarrow> se
 lemma move_ptr_spU:
   "\<lbrace><R>\<rbrace> move_ptr p p' 
    \<lbrace>\<lambda>_.  
-    <EXS v. (maps_to p' v \<and>* (sept (maps_to_ex p') (maps_to p v \<and>* sept (maps_to p v) R) ))> \<rbrace>u"
+    <EXS v. (p' \<mapsto>u v \<and>* ( (p' \<mapsto>u -) -o ( p \<mapsto>u v \<and>* ( p \<mapsto>u v -o R)) ))> \<rbrace>u"
  apply (clarsimp simp: move_ptr_def)
    apply (rule hoare_seq_extU)
    apply (rule get_ptr_spU)
@@ -1066,7 +1066,7 @@ done
 
 
 lemma septraction_maps_to_minus_heaplet_precise_conj: 
- "precise P \<Longrightarrow> (sept P (P \<and>* R)) s \<Longrightarrow> R (s :: ('a,'b) abstract_ext')" 
+ "precise P \<Longrightarrow> ( P -o (P \<and>* R)) s \<Longrightarrow> R (s :: ('a,'b) abstract_ext')" 
 apply (erule snake_sept_gal[rotated]; clarsimp)
 apply (clarsimp simp: snake_def sep_conj_def)
 apply (erule_tac back_subst[where P=R])
@@ -1205,8 +1205,8 @@ definition "swap_ptr_heap_alloc p q = do {
 }"
 
 lemma swap_ptr_heap_alloc:
-  "\<lbrace><(maps_to (p :: nat) v \<and>* maps_to q v')>\<rbrace> swap_ptr_heap_alloc p q 
-   \<lbrace>\<lambda>_ . <(maps_to p v' \<and>* maps_to q v)> \<rbrace>u"
+  "\<lbrace><( (p :: nat) \<mapsto>u v \<and>*  q \<mapsto>u v')>\<rbrace> swap_ptr_heap_alloc p q 
+   \<lbrace>\<lambda>_ . <( p \<mapsto>u v' \<and>*  q \<mapsto>u v)> \<rbrace>u"
   apply (clarsimp simp: swap_ptr_heap_alloc_def )
   apply (sp sp: new_ptr_spU move_ptr_spU delete_ptr_spU)
   apply (erule projectE)

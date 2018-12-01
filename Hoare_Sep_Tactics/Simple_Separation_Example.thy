@@ -472,7 +472,7 @@ lemma set_ptr_list_valid:
   apply clarsimp
   apply (sep_invert)
   apply (clarsimp)
-  apply (sep_forward, sep_forward)
+  apply (sep_forward)+
   apply (rule_tac x=q in exI, sep_solve)
   done
 
